@@ -7,7 +7,7 @@ const userschema = new mongoose.Schema({
     confpassword: { type: String, required: true },  
     admin: { type: Boolean, default: false },  
     blocked: { type: Boolean, default: false },  
-    cart: {type:Array,default :[]}
+   
 });
 
 module.exports=mongoose.model('User',userschema)
