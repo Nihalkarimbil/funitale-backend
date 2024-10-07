@@ -4,6 +4,8 @@ const { JoiUserSchema } = require('../models/validation')
 const bcrypt = require('bcrypt')
 const products = require('../models/product')
 const Cart = require('../models/Cart')
+const Wishlist = require('../models/Wishlist')
+const user = require('../models/user')
 
 
 //user register
@@ -31,9 +33,6 @@ const userReg = async (req, res) => {
 const userlogin = async (req, res) => {
     const { value, error } = JoiUserSchema.validate(req.body)
     const { username, password } = value;
-    if (error) {
-        throw new error
-    }
 
     try {
         //admin login jwt
@@ -64,13 +63,14 @@ const userlogin = async (req, res) => {
         }
 
         const token = jwt.sign({ id: user._id, username: user.username, email: user.email }, process.env.JWT_KEY, { expiresIn: '1d' })
-        res.status(200).json({ status: 'succes', message: "Logined succesfully", token })
+
         res.cookie('token', token, {
             httpOnly: true,
             secure: true,
             maxAge: 24 * 60 * 60 * 1000,
             sameSite: 'none'
         });
+        res.status(200).json({ status: 'succes', message: "Logined succesfully", token })
     } catch (error) {
         res.status(500).json({ status: 'error', message: 'Login failed', error: error.message })
     }
@@ -149,15 +149,172 @@ const getallcartItem = async (req, res) => {
     }
 };
 //updatecartitem
+const updatecartitem = async (req, res) => {
+    try {
+        const { productId, action } = req.body;
+
+        const cartData = await Cart.findOne({ user: req.user.id }).populate('products.productId');
+
+        if (!cartData) {
+            return res.status(404).json({ message: "cart not found" });
+        }
+
+        const cartProduct = cartData.products.find(pro => pro.productId.toString() === productId);
+
+        if (!cartProduct) {
+            return res.status(404).json({ message: 'product with this id is not found' });
+        }
+
+        if (action === "increment") {
+            cartProduct.quantity += 1;
+        } else if (action === 'decrement') {
+            if (cartProduct.quantity > 1) {
+                cartProduct.quantity -= 1;
+            } else {
+                cartData.products = cartData.products.filter(valu => valu.productId.toString() !== productId);
+            }
+        } else {
+            return res.status(400).json({ message: 'invalid action' });
+        }
+
+        await cartData.save();
+
+        const updatedCart = await Cart.findOne({ user: req.user.id }).populate('products.productId');
+        res.status(200).json({ products: updatedCart.products || [] });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'An error occurred while updating the cart.' });
+    }
+};
+
+//deletecart item
+
+const deleteCart = async (req, res) => {
+    try {
+        const { productId } = req.body;
+        const prodata = await Cart.findOne({ user: req.user.id }).populate('products.productId')
+        if (!prodata) {
+            res.status(404).json({ message: 'Cart not found' })
+        }
+        const productindex = prodata.products.findIndex(pro => pro.productId.toString() === productId)
+        prodata.splice(productindex, 1)
+        await prodata.save()
+        res.status(200).json(prodata || [])
+    } catch (error) {
+        console.log(error)
+        res.status(404).json('product not found')
+    }
+}
+const clearAllCart = async (req, res) => {
+    try {
+        const { userID } = req.params;
+        const cart = await Cart.findOne({ userID });
+
+        if (!cart) {
+            return res.status(404).json({ message: 'Cart not found' });
+        }
+
+        // Clear the products array
+        cart.products = [];
+        await cart.save();
+
+        res.status(200).json({ message: 'Cart cleared successfully' });
+    } catch (error) {
+        console.error('Error while clearing cart:', error);
+        res.status(500).json({ message: 'There was an error clearing the cart' });
+    }
+};
+//add to wishlist
+const addToWishlist = async (req, res) => {
+    try {
+        const { productId, userID } = req.body;
+        const wishlist = await Wishlist.findOne({ user: userID });
+
+        if (!wishlist) {
+            const newWishlist = new Wishlist({
+                user: userID,
+                products: [productId]
+            });
+
+            await newWishlist.save();
+            return res.status(200).json(newWishlist);
+        }
+
+        if (!wishlist.products.includes(productId)) {
+            wishlist.products.push(productId);
+            await wishlist.save();
+            return res.status(200).json(wishlist);
+        }
+        res.status(200).json({ message: 'Product already added to wishlist' });
+    } catch (error) {
+        console.error('Error in adding to wishlist:', error);
+        res.status(500).json({ message: 'An error occurred' });
+    }
+};
+
+//get all wish list products
+const getwishlist = async (req, res) => {
+    try {
+        const { userID } = req.params;
+        console.log(userID)
+       
+        const wishlist = await Wishlist.findOne({ user: userID }).populate('products');
+
+        if (!wishlist) {
+            // If no wishlist exists, create a new one
+            const newWish = new Wishlist({
+                user: userID, // Make sure this is assigned correctly
+                products: [],
+            });
+
+            await newWish.save();
+            return res.status(200).json(newWish);
+        }
+
+        return res.status(200).json(wishlist);
+    } catch (error) {
+        console.error('Error while fetching wishlist:', error);
+        res.status(500).json({ error: 'An error occurred while viewing the wishlist.' });
+    }
+};
+
+//delete wishlist
+const removewish=async(req,res)=>{
+    try {
+        const {productId}=req.body;
+        const data= await Wishlist.findOne({user:req.user.id}).populate('products')
+        if (!data){
+            return res.status(404).json({message:'wishlist not found'})
+        }
+        const productindex = data.products.findIndex(pro => pro.productId.toString() === productId)
+        prodata.splice(productindex, 1)
+        await data.save()
+        res.status(200).json(data || [])
+    } catch (error) {
+        res.status(404).json('there have an error')
+    }
+}
+
 
 
 
 
 module.exports = {
+    //user login and register
     userReg,
     userlogin,
+    //getting products
     productBycategory,
     getproductbyID,
+    //Cart 
     addtocart,
-    getallcartItem
+    getallcartItem,
+    updatecartitem,
+    deleteCart,
+    clearAllCart,
+    //wishlist
+    addToWishlist,
+    getwishlist,
+    removewish
+
 }
