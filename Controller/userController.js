@@ -76,6 +76,7 @@ const userlogin = async (req, res) => {
     }
 }
 
+
 //get products by category
 const productBycategory = async (req, res) => {
     try {
@@ -85,6 +86,8 @@ const productBycategory = async (req, res) => {
         res.status(500).json(error)
     }
 }
+
+
 
 //get product by ID
 const getproductbyID = async (req, res) => {
@@ -99,6 +102,9 @@ const getproductbyID = async (req, res) => {
         console.log(error)
     }
 }
+
+
+
 //add to cart
 const addtocart = async (req, res) => {
     try {
@@ -134,6 +140,9 @@ const addtocart = async (req, res) => {
         res.status(500).json({ message: 'Error in add to cart', error });
     }
 };
+
+
+
 //get all cartitem
 const getallcartItem = async (req, res) => {
     try {
@@ -148,6 +157,9 @@ const getallcartItem = async (req, res) => {
         res.status(404).json({ message: "Cart item not found", error });
     }
 };
+
+
+
 //updatecartitem
 const updatecartitem = async (req, res) => {
     try {
@@ -187,8 +199,9 @@ const updatecartitem = async (req, res) => {
     }
 };
 
-//deletecart item
 
+
+//deletecart item
 const deleteCart = async (req, res) => {
     try {
         const { productId } = req.body;
@@ -205,6 +218,8 @@ const deleteCart = async (req, res) => {
         res.status(404).json('product not found')
     }
 }
+
+//clear all cart data after payment
 const clearAllCart = async (req, res) => {
     try {
         const { userID } = req.params;
@@ -214,7 +229,6 @@ const clearAllCart = async (req, res) => {
             return res.status(404).json({ message: 'Cart not found' });
         }
 
-        // Clear the products array
         cart.products = [];
         await cart.save();
 
@@ -224,6 +238,8 @@ const clearAllCart = async (req, res) => {
         res.status(500).json({ message: 'There was an error clearing the cart' });
     }
 };
+
+
 //add to wishlist
 const addToWishlist = async (req, res) => {
     try {
@@ -257,13 +273,12 @@ const getwishlist = async (req, res) => {
     try {
         const { userID } = req.params;
         console.log(userID)
-       
+
         const wishlist = await Wishlist.findOne({ user: userID }).populate('products');
 
         if (!wishlist) {
-            // If no wishlist exists, create a new one
             const newWish = new Wishlist({
-                user: userID, // Make sure this is assigned correctly
+                user: userID,
                 products: [],
             });
 
@@ -279,12 +294,12 @@ const getwishlist = async (req, res) => {
 };
 
 //delete wishlist
-const removewish=async(req,res)=>{
+const removewish = async (req, res) => {
     try {
-        const {productId}=req.body;
-        const data= await Wishlist.findOne({user:req.user.id}).populate('products')
-        if (!data){
-            return res.status(404).json({message:'wishlist not found'})
+        const { productId } = req.body;
+        const data = await Wishlist.findOne({ user: req.user.id }).populate('products')
+        if (!data) {
+            return res.status(404).json({ message: 'wishlist not found' })
         }
         const productindex = data.products.findIndex(pro => pro.productId.toString() === productId)
         prodata.splice(productindex, 1)
