@@ -9,7 +9,7 @@ routes
     .post('/user/login',userController.userlogin)
     .get('/user/products/:category',userController.productBycategory)
     .get('/user/productby/:id',userController.getproductbyID)
-    .post('/user/addtocart',userAuthMiddleware,userController.addtocart)
+    .post('/user/addtocart',userController.addtocart)
     .get('/user/cart/:userID',userAuthMiddleware,userController.getallcartItem)
     .put('/user/updatecart',userAuthMiddleware,userController.updatecartitem)
     .delete('/user/deletecart',userAuthMiddleware,userController.deleteCart)
@@ -17,7 +17,6 @@ routes
     .post('/user/addwish',userAuthMiddleware,userController.addToWishlist)
     .get('/user/wishlist/:userID',userAuthMiddleware,userController.getwishlist)
     .delete('/user/removewish',userAuthMiddleware,userController.removewish)
-
-
+    .post('/user/addOrder',userController.CreateOrder)
 
 module.exports=routes 

@@ -5,7 +5,8 @@ const bcrypt = require('bcrypt')
 const products = require('../models/product')
 const Cart = require('../models/Cart')
 const Wishlist = require('../models/Wishlist')
-const user = require('../models/user')
+const stripe=require('stripe')(process.env.STRIPE_KEY)
+const Order=require('../models/orders')
 
 
 //user register
@@ -296,19 +297,76 @@ const getwishlist = async (req, res) => {
 //delete wishlist
 const removewish = async (req, res) => {
     try {
-        const { productId } = req.body;
-        const data = await Wishlist.findOne({ user: req.user.id }).populate('products')
+        const { productId,userID } = req.body;
+        const data = await Wishlist.findOne({ user: userID }).populate('products')
         if (!data) {
             return res.status(404).json({ message: 'wishlist not found' })
         }
-        const productindex = data.products.findIndex(pro => pro.productId.toString() === productId)
-        prodata.splice(productindex, 1)
+        const productindex = data.products.findIndex(pro => pro._id.toString() === productId)
+        data.products.splice(productindex, 1)
         await data.save()
         res.status(200).json(data || [])
     } catch (error) {
+        console.log(error);
+        
         res.status(404).json('there have an error')
     }
 }
+
+//order Creation
+const CreateOrder = async (req, res) => {
+    try {
+        const {userID}=req.body
+        const userCart = await Cart.findOne({ user: userID }).populate("products");
+        if (!userCart) {
+            return res.status(404).json('User cart not found');
+        }
+    
+        const totalPrice = Math.round(
+            userCart.products.reduce((total, value) => total + value.productId.new_price * value.quantity, 0)
+        );
+        console.log(totalPrice);
+
+        const lineItems = userCart.products.map(item => ({
+            price_data: {
+                currency: 'INR',
+                product_data: {
+                    name: item.productId.name,
+                    images: [item.productId.image]
+                },
+                unit_amount: Math.round(item.productId.new_price * 100) 
+            },
+            quantity: item.quantity
+        }));
+
+        const session = await stripe.checkout.sessions.create({
+            payment_method_types: ['card'],  
+            line_items: lineItems,           
+            mode: 'payment',
+            success_url: `${process.env.URL_FRONTEND}/success-order`,
+            cancel_url: `${process.env.URL_FRONTEND}/cancel-order`
+        });
+
+
+        const newOrder = new Order({
+            userID:userID,
+            products: userCart.products,
+            sessionID: session.id,
+            amount: totalPrice,
+            paymentStatus: 'pending'  
+        });
+
+       
+        const savedOrder = await newOrder.save();
+        await Cart.findOneAndUpdate({ user: userID }, { $set: { products: [] } });
+
+        res.status(200).json({ savedOrder, id: session.id });
+
+    } catch (error) {
+        console.log(error);
+        res.status(500).json('Error adding order');
+    }
+};
 
 
 
@@ -330,6 +388,9 @@ module.exports = {
     //wishlist
     addToWishlist,
     getwishlist,
-    removewish
+    removewish,
+    //orders
+    CreateOrder
+    
 
 }
