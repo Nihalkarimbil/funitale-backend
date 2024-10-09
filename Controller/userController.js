@@ -5,8 +5,8 @@ const bcrypt = require('bcrypt')
 const products = require('../models/product')
 const Cart = require('../models/Cart')
 const Wishlist = require('../models/Wishlist')
-const stripe=require('stripe')(process.env.STRIPE_KEY)
-const Order=require('../models/orders')
+const stripe = require('stripe')(process.env.STRIPE_KEY)
+const Order = require('../models/orders')
 
 
 //user register
@@ -109,12 +109,12 @@ const getproductbyID = async (req, res) => {
 //add to cart
 const addtocart = async (req, res) => {
     try {
-        const { userID, productId, quantity } = req.body;
-        let cart = await Cart.findOne({ user: userID }).populate('products.productId');
+        const { productId, quantity } = req.body;
+        let cart = await Cart.findOne({ user: req.user.id }).populate('products.productId');
 
         if (!cart) {
             const newCart = new Cart({
-                user: userID,
+                user: req.user.id,
                 products: [{ productId, quantity }]
             });
             await newCart.save();
@@ -123,19 +123,26 @@ const addtocart = async (req, res) => {
             return res.status(201).json(cartsend);
         }
 
+        console.log('Incoming productId:', productId);
+        
+
         const existingProduct = cart.products.find(
-            (product) => product.productId.toString() === productId
+            (product) => product.productId._id.toString() === productId.toString()
         );
+
+        console.log('Existing Product:', existingProduct); 
 
         if (existingProduct) {
             existingProduct.quantity += quantity;
+            console.log('Updated Quantity:', existingProduct.quantity);
         } else {
             cart.products.push({ productId, quantity });
         }
-        await cart.save();
-        const updateCart = await cart.populate('products.productId');
-        res.status(200).json(updateCart);
 
+        await cart.save();
+        const updatedCart = await cart.populate('products.productId');
+        res.status(200).json(updatedCart);
+ 
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Error in add to cart', error });
@@ -144,11 +151,13 @@ const addtocart = async (req, res) => {
 
 
 
+
+
 //get all cartitem
 const getallcartItem = async (req, res) => {
     try {
-        const { userID } = req.params;
-        const cart = await Cart.findOne({ user: userID }).populate('products.productId');
+        
+        const cart = await Cart.findOne({ user: req.user.id }).populate('products.productId');
         if (!cart) {
             return res.status(400).json({ message: "Cart not found" });
         }
@@ -166,13 +175,16 @@ const updatecartitem = async (req, res) => {
     try {
         const { productId, action } = req.body;
 
-        const cartData = await Cart.findOne({ user: req.user.id }).populate('products.productId');
-
+        const cartData = await Cart.findOne({ user: req.user.id}).populate('products.productId');
+        console.log("cartdata"+cartData);
+        
         if (!cartData) {
             return res.status(404).json({ message: "cart not found" });
         }
 
-        const cartProduct = cartData.products.find(pro => pro.productId.toString() === productId);
+        const cartProduct = cartData.products.find(pro => pro.productId._id.toString() == productId);
+        console.log ("product" +cartProduct)
+
 
         if (!cartProduct) {
             return res.status(404).json({ message: 'product with this id is not found' });
@@ -184,15 +196,15 @@ const updatecartitem = async (req, res) => {
             if (cartProduct.quantity > 1) {
                 cartProduct.quantity -= 1;
             } else {
-                cartData.products = cartData.products.filter(valu => valu.productId.toString() !== productId);
+                cartData.products = cartData.products.filter(valu => valu.productId._id.toString() !== productId);
             }
         } else {
             return res.status(400).json({ message: 'invalid action' });
         }
-
+ 
         await cartData.save();
 
-        const updatedCart = await Cart.findOne({ user: req.user.id }).populate('products.productId');
+        const updatedCart = await Cart.findOne({ user: req.user.id}).populate('products.productId');
         res.status(200).json({ products: updatedCart.products || [] });
     } catch (error) {
         console.error(error);
@@ -223,8 +235,8 @@ const deleteCart = async (req, res) => {
 //clear all cart data after payment
 const clearAllCart = async (req, res) => {
     try {
-        const { userID } = req.params;
-        const cart = await Cart.findOne({ userID });
+        
+        const cart = await Cart.findOne({ user: req.user.id });
 
         if (!cart) {
             return res.status(404).json({ message: 'Cart not found' });
@@ -244,12 +256,12 @@ const clearAllCart = async (req, res) => {
 //add to wishlist
 const addToWishlist = async (req, res) => {
     try {
-        const { productId, userID } = req.body;
-        const wishlist = await Wishlist.findOne({ user: userID });
+        const { productId } = req.body;
+        const wishlist = await Wishlist.findOne({ user: req.user.id});
 
         if (!wishlist) {
             const newWishlist = new Wishlist({
-                user: userID,
+                user: req.user.id ,
                 products: [productId]
             });
 
@@ -272,14 +284,11 @@ const addToWishlist = async (req, res) => {
 //get all wish list products
 const getwishlist = async (req, res) => {
     try {
-        const { userID } = req.params;
-        console.log(userID)
-
-        const wishlist = await Wishlist.findOne({ user: userID }).populate('products');
+        const wishlist = await Wishlist.findOne({ user: req.user.id }).populate('products');
 
         if (!wishlist) {
             const newWish = new Wishlist({
-                user: userID,
+                user: req.user.id ,
                 products: [],
             });
 
@@ -297,8 +306,8 @@ const getwishlist = async (req, res) => {
 //delete wishlist
 const removewish = async (req, res) => {
     try {
-        const { productId,userID } = req.body;
-        const data = await Wishlist.findOne({ user: userID }).populate('products')
+        const { productId } = req.body;
+        const data = await Wishlist.findOne({ user: req.user.id }).populate('products')
         if (!data) {
             return res.status(404).json({ message: 'wishlist not found' })
         }
@@ -308,7 +317,7 @@ const removewish = async (req, res) => {
         res.status(200).json(data || [])
     } catch (error) {
         console.log(error);
-        
+
         res.status(404).json('there have an error')
     }
 }
@@ -316,55 +325,141 @@ const removewish = async (req, res) => {
 //order Creation
 const CreateOrder = async (req, res) => {
     try {
-        const {userID}=req.body
-        const userCart = await Cart.findOne({ user: userID }).populate("products");
+        
+        const userCart = await Cart.findOne({ user: req.user.id }).populate("products.productId");
         if (!userCart) {
             return res.status(404).json('User cart not found');
         }
-    
+
         const totalPrice = Math.round(
-            userCart.products.reduce((total, value) => total + value.productId.new_price * value.quantity, 0)
-        );
+
+            userCart.products.reduce((total, item) => {
+                const price = parseFloat(item.productId.new_price);
+                const quantity = parseInt(item.quantity);
+                if (isNaN(price) || isNaN(quantity)) {
+                    throw new Error('Invalid product price or quantity');
+                }
+
+                return total + price * quantity;
+            }, 0)
+        )
         console.log(totalPrice);
 
-        const lineItems = userCart.products.map(item => ({
-            price_data: {
-                currency: 'INR',
-                product_data: {
-                    name: item.productId.name,
-                    images: [item.productId.image]
-                },
-                unit_amount: Math.round(item.productId.new_price * 100) 
-            },
-            quantity: item.quantity
-        }));
+        // const lineItems = userCart.products.map(item => ({
+        //     price_data: {
+        //         currency: 'INR',
+        //         product_data: {
+        //             name: item.productId.name,
+        //             images: [item.productId.image]
+        //         },
+        //         unit_amount: Math.round(item.productId.new_price * 100) 
+        //     },
+        //     quantity: item.quantity
+        // }));
 
-        const session = await stripe.checkout.sessions.create({
-            payment_method_types: ['card'],  
-            line_items: lineItems,           
-            mode: 'payment',
-            success_url: `${process.env.URL_FRONTEND}/success-order`,
-            cancel_url: `${process.env.URL_FRONTEND}/cancel-order`
-        });
+        // const session = await stripe.checkout.sessions.create({
+        //     payment_method_types: ['card'],  
+        //     line_items: lineItems,           
+        //     mode: 'payment',
+        //     success_url: `${process.env.URL_FRONTEND}/success-order`,
+        //     cancel_url: `${process.env.URL_FRONTEND}/cancel-order`
+        // });
 
 
         const newOrder = new Order({
-            userID:userID,
+            userID: req.user.id,
             products: userCart.products,
-            sessionID: session.id,
+            sessionID: 23452343,
             amount: totalPrice,
-            paymentStatus: 'pending'  
+            paymentStatus: 'pending'
         });
 
-       
-        const savedOrder = await newOrder.save();
-        await Cart.findOneAndUpdate({ user: userID }, { $set: { products: [] } });
 
-        res.status(200).json({ savedOrder, id: session.id });
+        const savedOrder = await newOrder.save();
+        await Cart.findOneAndUpdate({ user: req.user.id }, { $set: { products: [] } });
+
+        res.status(200).json({ savedOrder });
 
     } catch (error) {
         console.log(error);
         res.status(500).json('Error adding order');
+    }
+};
+
+
+//verify order
+
+const verifyOrder = async (req, res) => {
+    try {
+        const { session_ID } = req.body;
+        const order = await Order.findOne({ sessionID: session_ID });
+
+        if (!order) {
+            return res.status(404).json('Order not found');
+        }
+
+        if (order.paymentStatus === 'completed') {
+            return res.status(400).json('Product already updated');
+        }
+
+        order.paymentStatus = 'completed';
+        order.shippingStatus = 'Processing'
+        const updatedOrder = await order.save();
+
+        res.status(200).json({ message: 'Order successfully updated', updatedOrder });
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Error verifying order' });
+    }
+};
+
+
+//get all orders
+
+const GetAllorders = async (req,res) => {
+    try {
+        
+        const allOrders=await Order.find({ userID: req.user.id }).populate("products.productId")
+        
+        if (!allOrders || allOrders.length === 0) {
+            return res.status(404).json('No orders found');
+        }
+
+        res.status(200).json(allOrders)
+    } catch (error) {
+        console.log(error)
+        res.status(500).json('there is an error on geting orders')
+    }
+
+}
+
+
+//Cancel Order
+const cancelOrder = async (req, res) => {
+    try {
+        const { orderId } = req.params;
+        const orderById = await Order.findById(orderId); 
+
+        if (!orderById) {
+            return res.status(404).json("Order with this ID is not found");
+        }
+        
+        if (orderById.paymentStatus === "completed") {
+            return res.status(400).json('Cannot cancel this order, already paid');
+        }
+
+        orderById.paymentStatus = 'cancelled';
+        orderById.shippingStatus = 'cancelled';
+
+  
+        await orderById.save();
+
+        res.status(200).json('Order successfully cancelled');
+
+    } catch (error) {
+        console.log(error);
+        res.status(500).json('There is an error on cancelling the order');
     }
 };
 
@@ -390,7 +485,8 @@ module.exports = {
     getwishlist,
     removewish,
     //orders
-    CreateOrder
-    
-
+    CreateOrder,
+    verifyOrder,
+    GetAllorders,
+    cancelOrder
 }

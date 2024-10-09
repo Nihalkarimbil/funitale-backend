@@ -1,7 +1,9 @@
-const jwt = require('jsonwebtoken');
+const jwt = require ('jsonwebtoken');
 
 const userAuthMiddleware = async (req, res, next) => {
-    const token = req.cookies?.token;  
+    // const token = req.cookies?.token;  
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
     
     if (!token) {
         return res.status(403).json({ message: 'No Token' });
@@ -20,10 +22,10 @@ const userAuthMiddleware = async (req, res, next) => {
 
 const adminAuthMiddleware=async (req,res,next)=>{
     userAuthMiddleware (req,res,()=>{
-        if(req.user.admin){
+        if(req.user && req.user.admin){
             next()
         }else{
-            throw new error('you are not authorised',403)
+            return res.status(403).json('you are not authorised')
         }
     })
 }
