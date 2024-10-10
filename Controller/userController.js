@@ -218,17 +218,20 @@ const updatecartitem = async (req, res) => {
 const deleteCart = async (req, res) => {
     try {
         const { productId } = req.body;
-        const prodata = await Cart.findOne({ user: req.user.id }).populate('products.productId')
+        const prodata = await Cart.findOne({ user: req.user.id }).populate('products.productId');
         if (!prodata) {
-            res.status(404).json({ message: 'Cart not found' })
+            return res.status(404).json({ message: 'Cart not found' });
         }
-        const productindex = prodata.products.findIndex(pro => pro.productId.toString() === productId)
-        prodata.splice(productindex, 1)
-        await prodata.save()
-        res.status(200).json(prodata || [])
+
+        const productindex = prodata.products.findIndex(pro => pro.productId._id.toString() == productId);
+        prodata.products.splice(productindex, 1);
+
+        await prodata.save();
+
+        return res.status(200).json(prodata || []);
     } catch (error) {
-        console.log(error)
-        res.status(404).json('product not found')
+        console.log(error);
+        return res.status(500).json({ message: 'An error occurred' });
     }
 }
 

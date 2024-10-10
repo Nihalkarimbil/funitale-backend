@@ -6,10 +6,11 @@ const app=express()
 const mongoose=require('mongoose')
 
 const userRout=require('./routes/userRoutes')
-
+const adminRoute=require('./routes/adminRoutes')
 
 app.use(express.json())
 app.use('/api',userRout)
+app.use('/api',adminRoute)
 
 mongoose.connect(process.env.MONGO_URI) 
 .then(()=>{console.log('connected to database')})

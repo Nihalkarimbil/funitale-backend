@@ -1,5 +1,5 @@
 const express = require('express')
-const routes=express();
+const routes=express.Router();
 const userController=require ('../Controller/userController')
 const {userAuthMiddleware}=require('../middleware/Authentication')
 

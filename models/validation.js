@@ -18,7 +18,7 @@ const JoiProductSchema = joi.object({
     rating: joi.number().min(0).max(3).default(0), 
     reviews: joi.number().min(0).default(0),
     topTrends: joi.boolean().default(false),
-    newCollections: joi.boolean().default(false),
+    newCollections: joi.boolean().default(true),
     detailOne: joi.string().required()
   })
 
