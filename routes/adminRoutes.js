@@ -15,5 +15,9 @@ Routes
     .get('/admin/products',adminController.allProduct)
     .get('/admin/proctby/:id',adminController.getproductbyID)
     .post('/admin/addproduct',adminController.addProduct)
+    .put('/admin/editproduct/:id',adminController.editProduct)
+    
+    //ORDERS Routes
+    .get('/admin/orders',adminController.allOrders)
 
 module.exports=Routes

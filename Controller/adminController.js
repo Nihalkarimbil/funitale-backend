@@ -1,7 +1,7 @@
 const User = require('../models/user')
 const Product = require('../models/product')
 const { JoiProductSchema}=require('../models/validation')
-
+const Order= require('../models/orders')
 //get all Users
 const allUsers = async (req, res) => {
     try {
@@ -119,6 +119,45 @@ const addProduct=async(req,res)=>{
 }
 
 
+//editing of the product
+const editProduct = async (req, res) => {
+    const { error, value } = JoiProductSchema.validate(req.body);
+    if (error) {
+        return res.status(400).json({ message: 'Validation failed', details: error.details });
+    }
+
+    try {
+        const updatedProduct = await Product.findByIdAndUpdate(req.params.id, value, { new: true });
+        
+        if (!updatedProduct) {
+            return res.status(404).json({ message: 'Product not found with this ID' });
+        }
+
+        res.status(200).json(updatedProduct);
+    } catch (err) {
+        console.error('Error while updating product:', err);
+        res.status(500).json({ message: 'Error on updating product', error: err.message });
+    }
+};
+
+//get all orders
+const allOrders=async(req,res)=>{
+    try {
+        const orders=await Order.find()
+        if(!orders){
+            return res.status(404).json('orders Not found')
+        }
+        res.status(200).json(orders)
+        
+    } catch (error) {
+        console.log(error)
+        res.status(404).json('there is an error finding orders',error)
+        
+    }    
+}
+
+
+
 module.exports = {
     allUsers,
     deleteUser,
@@ -126,6 +165,9 @@ module.exports = {
     Updateuser,
     allProduct,
     getproductbyID,
-    addProduct
+    addProduct,
+    editProduct,
+    allOrders
+
 
 }
