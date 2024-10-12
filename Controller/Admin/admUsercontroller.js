@@ -1,6 +1,6 @@
-const User = require('../models/user')
+const User = require('../../models/user')
 
-
+//get all users
 const allUsers = async (req, res) => {
     try {
         const users = await User.find({ blocked: false })

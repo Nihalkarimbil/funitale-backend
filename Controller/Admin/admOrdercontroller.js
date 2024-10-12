@@ -91,11 +91,8 @@ const TotalRevenew = async (req, res) => {
 
 
 module.exports = {
-   
     allOrders,
     cancelOrder,
     getOrderofuserbyID,
     TotalRevenew
-
-
 }

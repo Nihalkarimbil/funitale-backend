@@ -1,6 +1,6 @@
-const Product = require('../models/product')
-const { JoiProductSchema } = require('../models/validation')
-const Cart = require('../models/Cart')
+const Product = require('../../models/product')
+const { JoiProductSchema } = require('../../models/validation')
+const Cart = require('../../models/Cart')
 
 
 const allProduct = async (req, res) => {
