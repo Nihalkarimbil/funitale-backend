@@ -29,6 +29,6 @@ routes
     .post('/user/addOrder',userAuthMiddleware,userController.CreateOrder)
     .post('/user/verifyorder',userAuthMiddleware,userController.verifyOrder)
     .get('/user/getAllorders',userAuthMiddleware,userController.GetAllorders)
-    .delete('/user/order/:orderId',userAuthMiddleware,userController.cancelOrder)
+    .delete('/user/order/:id',userAuthMiddleware,userController.cancelOrder)
 
 module.exports=routes 

@@ -257,26 +257,57 @@ const clearAllCart = async (req, res) => {
 
 
 //add to wishlist
+// const addToWishlist = async (req, res) => {
+//     try {
+//         const { productId } = req.body;
+//         const wishlist = await Wishlist.findOne({ user: req.user.id});
+
+//         if (!wishlist) {
+//             const newWishlist = new Wishlist({
+//                 user: req.user.id ,
+//                 products: [productId]
+//             });
+
+//             await newWishlist.save();
+//             return res.status(200).json(newWishlist).populate('products.productId');
+//         }
+
+//         if (!wishlist.products.includes(productId)) {
+//             wishlist.products.push(productId);
+//             await wishlist.save();
+//             return res.status(200).json(wishlist).populate('products.productId');
+//         }
+//         res.status(200).json({ message: 'Product already added to wishlist' });
+//     } catch (error) {
+//         console.error('Error in adding to wishlist:', error);
+//         res.status(500).json({ message: 'An error occurred' });
+//     }
+// };
 const addToWishlist = async (req, res) => {
     try {
         const { productId } = req.body;
-        const wishlist = await Wishlist.findOne({ user: req.user.id});
+        let wishlist = await Wishlist.findOne({ user: req.user.id });
 
         if (!wishlist) {
             const newWishlist = new Wishlist({
-                user: req.user.id ,
+                user: req.user.id,
                 products: [productId]
             });
 
             await newWishlist.save();
-            return res.status(200).json(newWishlist);
-        }
 
-        if (!wishlist.products.includes(productId)) {
+            const populatedWishlist = await newWishlist.populate('products.productId');
+            return res.status(200).json(populatedWishlist);
+        }
+        const isProductInWishlist = wishlist.products.some(product => product.equals(productId));
+
+        if (!isProductInWishlist) {
             wishlist.products.push(productId);
             await wishlist.save();
+            wishlist = await wishlist.populate('products.productId'); 
             return res.status(200).json(wishlist);
         }
+
         res.status(200).json({ message: 'Product already added to wishlist' });
     } catch (error) {
         console.error('Error in adding to wishlist:', error);
@@ -441,8 +472,8 @@ const GetAllorders = async (req,res) => {
 //Cancel Order
 const cancelOrder = async (req, res) => {
     try {
-        const { orderId } = req.params;
-        const orderById = await Order.findById(orderId); 
+        
+        const orderById = await Order.findById(req.params.id); 
 
         if (!orderById) {
             return res.status(404).json("Order with this ID is not found");
