@@ -9,9 +9,10 @@ const userOrder=require('../Controller/User/userOrdercontroller')
 
 
 routes
-    //user LOGIN/REGISTER
+    //user LOGIN/REGISTER/LOGOUT
     .post('/user/signup',userController.userReg)
     .post('/user/login',userController.userlogin)
+    .post('/user/logout',userController.userLogout)
 
     //Product View
     .get('/user/products/:category',userproduct.productBycategory)

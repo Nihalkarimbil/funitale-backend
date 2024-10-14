@@ -12,10 +12,14 @@ const userReg = async (req, res) => {
     if (error) {
         throw new error
     }
+    
+    if (password !== confpassword) {
+        return res.status(400).json({ error: 'Passwords do not match' });
+    }
 
     try {
         const hashedpassword = await bcrypt.hash(password, 8)
-        const newUser = new User({ username, password: hashedpassword, confpassword, email })
+        const newUser = new User({ username, password: hashedpassword, confpassword:hashedpassword , email })
         await newUser.save()
         res.status(200).json({ status: 'succes', message: 'Registerd succesfully', data: newUser })
 
@@ -72,10 +76,18 @@ const userlogin = async (req, res) => {
     }
 }
 
-
+const userLogout=async(req,res)=>{
+    try {
+        res.clearCookie('token')
+        res.status(200).json('Logout successfull')
+    } catch (error) {
+        res.status(400).json(error)
+    }
+}
 
 module.exports = {
-    //user login and register
+    //user login/register/logout
     userReg,
     userlogin,
+    userLogout
 }
