@@ -1,97 +1,83 @@
 const Product = require('../../models/product')
 const { JoiProductSchema } = require('../../models/validation')
 const Cart = require('../../models/Cart')
+const CustomError = require('../../utils/customError')
 
 
-const allProduct = async (req, res) => {
-    try {
-        const product = await Product.find()
-        if (!product) {
-            return res.status(404).json('product not found')
-        }
-        res.status(200).json(product)
-    } catch (error) {
-        console.log(error)
-        res.status(500).json('products not found', error)
+const allProduct = async (req, res, next) => {
+
+    const product = await Product.find()
+    if (!product) {
+        return next(new CustomError('product not found', 404))
     }
+    res.status(200).json(product)
+
 }
 
 //get product by id
-const getproductbyID = async () => {
-    try {
-        const product = await Product.findById(req.params.id)
-        if (!product) {
-            return res.status(404).json('product with this id is not available')
-        }
-        res.status(200).json(product)
+const getproductbyID = async (req, res, next) => {
 
-    } catch (error) {
-        console.log(error)
-        res.status(500).json('error on finding error', error)
+    const product = await Product.findById(req.params.id)
+    if (!product) {
+        return next(new CustomError("product with this id is not available",400))
     }
+    res.status(200).json(product)
 }
 
 //add Products
-const addProduct = async (req, res) => {
-    try {
-        const { error, value } = JoiProductSchema.validate(req.body)
-        if (error) {
-            return res.status(400).json(error)
-        }
-        const { name, category, image, new_price, description, detailOne } = value;
-        const newproduct = await new Product({ name, category, image, new_price, description, detailOne })
-        newproduct.save()
-        res.status(200).json(newproduct)
+const addProduct = async (req, res, next) => {
 
-    } catch (error) {
-        console.log(error)
-        res.status(500).json('error on adding product', error)
+    const { error, value } = JoiProductSchema.validate(req.body)
+    if (error) {
+        return next(new CustomError(error.message))
     }
+    const { name, category, image, new_price, description, detailOne } = value;
+    const newproduct = await new Product({ name, category, image, new_price, description, detailOne })
+    newproduct.save()
+    res.status(200).json(newproduct)
+
+
 }
 
 
 //editing of the product
-const editProduct = async (req, res) => {
+const editProduct = async (req, res, next) => {
+
     const { error, value } = JoiProductSchema.validate(req.body);
     if (error) {
-        return res.status(400).json({ message: 'Validation failed', details: error.details });
+        return next(new CustomError('Validation failed', 400))
     }
 
-    try {
-        const updatedProduct = await Product.findByIdAndUpdate(req.params.id, value, { new: true });
 
-        if (!updatedProduct) {
-            return res.status(404).json({ message: 'Product not found with this ID' });
-        }
+    const updatedProduct = await Product.findByIdAndUpdate(req.params.id, value, { new: true });
 
-        res.status(200).json(updatedProduct);
-    } catch (err) {
-        console.error('Error while updating product:', err);
-        res.status(500).json({ message: 'Error on updating product', error: err.message });
+    if (!updatedProduct) {
+        return next(new CustomError('Product not found with this ID', 404))
     }
+
+    res.status(200).json(updatedProduct);
+
 };
 
 //delete product
-const deleteProduct = async (req, res) => {
-    try {
-        const deleteProduct = await Product.findByIdAndDelete(req.params.id)
-        if (!deleteProduct) {
-            return res.status(404).json('Product with this ID is not found')
-        }
+const deleteProduct = async (req, res, next) => {
 
-        await Cart.updateMany(
-            { 'products.productId': req.params.id },
-            { $pull: { products: { productId: req.params.id } } }
-        )
-
-        res.status(200).json("Product deleted successfully and removed from all carts and wishlists");
-
-    } catch (error) {
-        res.status(500).json({ message: 'There was an error deleting the product', error })
+    const deleteProduct = await Product.findByIdAndDelete(req.params.id)
+    if (!deleteProduct) {
+        return next(new CustomError('Product with this ID is not found', 404))
     }
+
+    await Cart.updateMany(
+        { 'products.productId': req.params.id },
+        { $pull: { products: { productId: req.params.id } } }
+    )
+
+    res.status(200).json("Product deleted successfully and removed from all carts and wishlists");
+
+
 }
 
-module.exports={
+module.exports = {
     allProduct,
     getproductbyID,
     addProduct,

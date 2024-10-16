@@ -1,80 +1,73 @@
 const Wishlist = require('../../models/Wishlist')
+const CustomError = require('../../utils/customError')
 
 //add to wishlist
 const addToWishlist = async (req, res) => {
-    try {
-        const { productId } = req.body;
-        let wishlist = await Wishlist.findOne({ user: req.user.id });
 
-        if (!wishlist) {
-            const newWishlist = new Wishlist({
-                user: req.user.id,
-                products: [productId]
-            });
+    const { productId } = req.body;
+    let wishlist = await Wishlist.findOne({ user: req.user.id });
 
-            await newWishlist.save();
+    if (!wishlist) {
+        const newWishlist = new Wishlist({
+            user: req.user.id,
+            products: [productId]
+        });
 
-            const populatedWishlist = await newWishlist.populate('products.productId');
-            return res.status(200).json(populatedWishlist);
-        }
-        const isProductInWishlist = wishlist.products.some(product => product.equals(productId));
+        await newWishlist.save();
 
-        if (!isProductInWishlist) {
-            wishlist.products.push(productId);
-            await wishlist.save();
-            wishlist = await wishlist.populate('products.productId'); 
-            return res.status(200).json(wishlist);
-        }
-
-        res.status(200).json({ message: 'Product already added to wishlist' });
-    } catch (error) {
-        console.error('Error in adding to wishlist:', error);
-        res.status(500).json({ message: 'An error occurred' });
+        const populatedWishlist = await newWishlist.populate('products.productId');
+        return res.status(200).json(populatedWishlist);
     }
+    const isProductInWishlist = wishlist.products.some(product => product.equals(productId));
+
+    if (!isProductInWishlist) {
+        wishlist.products.push(productId);
+        await wishlist.save();
+        wishlist = await wishlist.populate('products.productId');
+        return res.status(200).json(wishlist);
+    }
+
+    res.status(200).json({ message: 'Product already added to wishlist' });
+
 };
 
 //get all wish list products
 const getwishlist = async (req, res) => {
-    try {
-        const wishlist = await Wishlist.findOne({ user: req.user.id }).populate('products');
 
-        if (!wishlist) {
-            const newWish = new Wishlist({
-                user: req.user.id ,
-                products: [],
-            });
+    const wishlist = await Wishlist.findOne({ user: req.user.id }).populate('products');
 
-            await newWish.save();
-            return res.status(200).json(newWish);
-        }
+    if (!wishlist) {
+        const newWish = new Wishlist({
+            user: req.user.id,
+            products: [],
+        });
 
-        return res.status(200).json(wishlist);
-    } catch (error) {
-        console.error('Error while fetching wishlist:', error);
-        res.status(500).json({ error: 'An error occurred while viewing the wishlist.' });
+        await newWish.save();
+        return res.status(200).json(newWish);
     }
+
+    return res.status(200).json(wishlist);
+
 };
 
 //delete wishlist
-const removewish = async (req, res) => {
-    try {
-        const { productId } = req.body;
-        const data = await Wishlist.findOne({ user: req.user.id }).populate('products')
-        if (!data) {
-            return res.status(404).json({ message: 'wishlist not found' })
-        }
-        const productindex = data.products.findIndex(pro => pro._id.toString() === productId)
-        data.products.splice(productindex, 1)
-        await data.save()
-        res.status(200).json(data || [])
-    } catch (error) {
-        console.log(error);
+const removewish = async (req, res, next) => {
 
-        res.status(404).json('there have an error')
+    const { productId } = req.body;
+    const data = await Wishlist.findOne({ user: req.user.id }).populate('products')
+
+    if (!data) {
+        return next(new CustomError('wishlist not found', 404))
     }
+    const productindex = data.products.findIndex(pro => pro._id.toString() === productId)
+    
+    data.products.splice(productindex, 1)
+    await data.save()
+    res.status(200).json(data || [])
+
 }
 
-module.exports={
+module.exports = {
     addToWishlist,
     getwishlist,
     removewish

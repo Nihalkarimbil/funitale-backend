@@ -2,39 +2,39 @@ const User = require('../models/user')
 const jwt = require('jsonwebtoken')
 const { JoiUserSchema } = require('../models/validation')
 const bcrypt = require('bcrypt')
+const CustomError = require('../utils/customError')
 
 
 //user register
-const userReg = async (req, res) => {
+const userReg = async (req, res, next) => {
     const { value, error } = JoiUserSchema.validate(req.body)
     const { username, password, confpassword, email } = value
 
     if (error) {
-        throw new error
+        return next(new CustomError(error.details[0].message, 400))
+    }
+
+    if (password !== confpassword) {
+        // return res.status(400).json({ error: 'Passwords do not match' });
+        return next(new CustomError('Passwords do not match', 400))
     }
     
-    if (password !== confpassword) {
-        return res.status(400).json({ error: 'Passwords do not match' });
-    }
-
-    try {
-        const hashedpassword = await bcrypt.hash(password, 8)
-        const newUser = new User({ username, password: hashedpassword, confpassword:hashedpassword , email })
-        await newUser.save()
-        res.status(200).json({ status: 'succes', message: 'Registerd succesfully', data: newUser })
-
-    } catch (error) {
-        res.status(404).json(error)
-    }
+    const hashedpassword = await bcrypt.hash(password, 8)
+    const newUser = new User({ username, password: hashedpassword, confpassword: hashedpassword, email })
+    await newUser.save()
+    res.status(200).json({ status: 'succes', message: 'Registerd succesfully', data: newUser })
 
 }
 
 //user login
-const userlogin = async (req, res) => {
-    const { value, error } = JoiUserSchema.validate(req.body)
-    const { username, password } = value;
-
+const userlogin = async (req, res, next) => {
     try {
+        const { value, error } = JoiUserSchema.validate(req.body)
+        if (error) {
+            return next(new CustomError('Validation error: ' + error.details[0].message, 400));
+        }
+        const { username, password } = value;
+
         //admin login jwt
         const adminName = process.env.ADMIN_USERNAME
         const adminPass = process.env.ADMIN_PASSWORD
@@ -55,11 +55,11 @@ const userlogin = async (req, res) => {
 
         const user = await User.findOne({ username })
         if (!user) {
-            return res.status(404).json({ status: 'eror', message: 'user not found' })
+            return next(new CustomError('user not found', 404))
         }
         const matching = await bcrypt.compare(password, user.password)
         if (!matching) {
-            return res.status(400).json({ status: 'error', message: 'invalid credentials' })
+            return next(new CustomError('invalid credentials', 404))
         }
 
         const token = jwt.sign({ id: user._id, username: user.username, email: user.email }, process.env.JWT_KEY, { expiresIn: '1d' })
@@ -71,19 +71,27 @@ const userlogin = async (req, res) => {
             sameSite: 'none'
         });
         res.status(200).json({ status: 'succes', message: "Logined succesfully", token })
+
     } catch (error) {
-        res.status(500).json({ status: 'error', message: 'Login failed', error: error.message })
+        next(error)
     }
+
 }
 
-const userLogout=async(req,res)=>{
+const userLogout = async (req, res, next) => {
     try {
-        res.clearCookie('token')
-        res.status(200).json('Logout successfull')
+        res.clearCookie('token', {
+            httpOnly: true,
+            secure: true,
+            sameSite: 'none',
+        });
+        res.status(200).json({ status: 'success', message: 'Logout successful' });
+
     } catch (error) {
-        res.status(400).json(error)
+        next(new CustomError('Logout failed', 500));
     }
-}
+};
+
 
 module.exports = {
     //user login/register/logout

@@ -1,151 +1,135 @@
+const { custom } = require('joi');
 const Cart = require('../../models/Cart')
+const CustomError = require('../../utils/customError')
 
 //add to cart
 const addtocart = async (req, res) => {
-    try {
-        const { productId, quantity } = req.body;
-        let cart = await Cart.findOne({ user: req.user.id }).populate('products.productId');
 
-        if (!cart) {
-            const newCart = new Cart({
-                user: req.user.id,
-                products: [{ productId, quantity }]
-            });
-            await newCart.save();
+    const { productId, quantity } = req.body;
+    let cart = await Cart.findOne({ user: req.user.id }).populate('products.productId');
 
-            const cartsend = await newCart.populate('products.productId');
-            return res.status(201).json(cartsend);
-        }
+    if (!cart) {
+        const newCart = new Cart({
+            user: req.user.id,
+            products: [{ productId, quantity }]
+        });
+        await newCart.save();
 
-        console.log('Incoming productId:', productId);
-        
-        const existingProduct = cart.products.find(
-            (product) => product.productId._id.toString() === productId.toString()
-        );
-
-        console.log('Existing Product:', existingProduct); 
-
-        if (existingProduct) {
-            existingProduct.quantity += quantity;
-            console.log('Updated Quantity:', existingProduct.quantity);
-        } else {
-            cart.products.push({ productId, quantity });
-        }
-
-        await cart.save();
-        const updatedCart = await cart.populate('products.productId');
-        res.status(200).json(updatedCart);
- 
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Error in add to cart', error });
+        const cartsend = await newCart.populate('products.productId');
+        return res.status(201).json(cartsend);
     }
+
+    console.log('Incoming productId:', productId);
+
+    const existingProduct = cart.products.find(
+        (product) => product.productId._id.toString() === productId.toString()
+    );
+
+    console.log('Existing Product:', existingProduct);
+
+    if (existingProduct) {
+        existingProduct.quantity += quantity;
+        console.log('Updated Quantity:', existingProduct.quantity);
+    } else {
+        cart.products.push({ productId, quantity });
+    }
+
+    await cart.save();
+    const updatedCart = await cart.populate('products.productId');
+    res.status(200).json(updatedCart);
+
+
 };
 
 //get all cartitem
-const getallcartItem = async (req, res) => {
-    try {
-        
-        const cart = await Cart.findOne({ user: req.user.id }).populate('products.productId');
-        if (!cart) {
-            return res.status(400).json({ message: "Cart not found" });
-        }
-        res.status(200).json(cart);
-    } catch (error) {
-        console.error(error);
-        res.status(404).json({ message: "Cart item not found", error });
+const getallcartItem = async (req, res, next) => {
+
+    const cart = await Cart.findOne({ user: req.user.id }).populate('products.productId');
+    if (!cart) {
+
+        return next(new CustomError('Cart not found', 400))
     }
+    res.status(200).json(cart);
 };
 
 
 //updatecartitem
-const updatecartitem = async (req, res) => {
-    try {
-        const { productId, action } = req.body;
+const updatecartitem = async (req, res, next) => {
 
-        const cartData = await Cart.findOne({ user: req.user.id}).populate('products.productId');
-        console.log("cartdata"+cartData);
-        
-        if (!cartData) {
-            return res.status(404).json({ message: "cart not found" });
-        }
+    const { productId, action } = req.body;
 
-        const cartProduct = cartData.products.find(pro => pro.productId._id.toString() == productId);
-        console.log ("product" +cartProduct)
+    const cartData = await Cart.findOne({ user: req.user.id }).populate('products.productId');
+    console.log("cartdata" + cartData);
 
-
-        if (!cartProduct) {
-            return res.status(404).json({ message: 'product with this id is not found' });
-        }
-
-        if (action === "increment") {
-            cartProduct.quantity += 1;
-        } else if (action === 'decrement') {
-            if (cartProduct.quantity > 1) {
-                cartProduct.quantity -= 1;
-            } else {
-                cartData.products = cartData.products.filter(valu => valu.productId._id.toString() !== productId);
-            }
-        } else {
-            return res.status(400).json({ message: 'invalid action' });
-        }
- 
-        await cartData.save();
-
-        const updatedCart = await Cart.findOne({ user: req.user.id}).populate('products.productId');
-        res.status(200).json({ products: updatedCart.products || [] });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'An error occurred while updating the cart.' });
+    if (!cartData) {
+        return next(new CustomError("cart not found", 404))
     }
+
+    const cartProduct = cartData.products.find(pro => pro.productId._id.toString() == productId);
+    console.log("product" + cartProduct)
+
+
+    if (!cartProduct) {
+        return next(new CustomError('product with this id is not found', 404))
+    }
+
+    if (action === "increment") {
+        cartProduct.quantity += 1;
+    } else if (action === 'decrement') {
+        if (cartProduct.quantity > 1) {
+            cartProduct.quantity -= 1;
+        } else {
+            cartData.products = cartData.products.filter(valu => valu.productId._id.toString() !== productId);
+        }
+    } else {
+        return next(new CustomError('invalid action', 400))
+    }
+
+    await cartData.save();
+
+    const updatedCart = await Cart.findOne({ user: req.user.id }).populate('products.productId');
+    res.status(200).json({ products: updatedCart.products || [] });
 };
 
 
 
 //deletecart item
-const deleteCart = async (req, res) => {
-    try {
-        const { productId } = req.body;
-        const prodata = await Cart.findOne({ user: req.user.id }).populate('products.productId');
-        if (!prodata) {
-            return res.status(404).json({ message: 'Cart not found' });
-        }
+const deleteCart = async (req, res, next) => {
 
-        const productindex = prodata.products.findIndex(pro => pro.productId._id.toString() == productId);
-        prodata.products.splice(productindex, 1);
-
-        await prodata.save();
-
-        return res.status(200).json(prodata || []);
-    } catch (error) {
-        console.log(error);
-        return res.status(500).json({ message: 'An error occurred' });
+    const { productId } = req.body;
+    const prodata = await Cart.findOne({ user: req.user.id }).populate('products.productId');
+    if (!prodata) {
+        return next(new CustomError("Cart not found", 404))
     }
+
+    const productindex = prodata.products.findIndex(pro => pro.productId._id.toString() == productId);
+    prodata.products.splice(productindex, 1);
+
+    await prodata.save();
+
+    return res.status(200).json(prodata || []);
+
 }
 
 
 //clear all cart data after payment
-const clearAllCart = async (req, res) => {
-    try {
-        
-        const cart = await Cart.findOne({ user: req.user.id });
+const clearAllCart = async (req, res, next) => {
 
-        if (!cart) {
-            return res.status(404).json({ message: 'Cart not found' });
-        }
+    const cart = await Cart.findOne({ user: req.user.id });
 
-        cart.products = [];
-        await cart.save();
-
-        res.status(200).json({ message: 'Cart cleared successfully' });
-    } catch (error) {
-        console.error('Error while clearing cart:', error);
-        res.status(500).json({ message: 'There was an error clearing the cart' });
+    if (!cart) {
+        return next(new CustomError('Cart not found', 404))
     }
+
+    cart.products = [];
+    await cart.save();
+
+    res.status(200).json({ message: 'Cart cleared successfully' });
+
 };
 
 
-module.exports={ 
+module.exports = {
     addtocart,
     getallcartItem,
     updatecartitem,
