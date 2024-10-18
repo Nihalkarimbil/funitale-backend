@@ -1,42 +1,48 @@
 const jwt = require('jsonwebtoken');
-const CustomError= require('../utils/customError')
+const CustomError = require('../utils/customError')
 
 const userAuthMiddleware = async (req, res, next) => {
     // const token = req.cookies?.token;  
     const authHeader = req.headers['authorization'];
-    const Token = authHeader && authHeader.split(' ')[1];
+    const token = authHeader && authHeader.split(' ')[1];
 
-    if (!Token) {
-        const refreshToken = res.cookies?.refreshtoken;
+    if (!token) {
+        const refreshToken = req.cookies?.refreshtoken;
+        console.log(refreshToken)
+
         if (!refreshToken) {
-            return next(new CustomError('no token or refresh token',403))
+            return next(new CustomError('no token or refresh token', 403))
         }
-        try {
-            const decoded=jwt.verify(refreshToken,process.env.JWT_KEY)
 
-            const newtoken=jwt.sign({id:decoded.id,username:decoded.username,email:decoded.email},process.env.JWT_KEY,{ expiresIn: '15m' })
+        try {
+            const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_KEY)
+
+            const newtoken = jwt.sign({ id: decoded.id, username: decoded.username, email: decoded.email }, process.env.JWT_KEY, { expiresIn: '30m' })
 
             res.cookie('token', newtoken, {
                 httpOnly: true,
                 secure: true,
-                maxAge: 15 * 60 * 1000,
+                maxAge: 30 * 60 * 1000,
                 sameSite: 'none'
             });
-            req.user=decoded
-            next()
+            req.user = decoded
+
+            return next()
+
         } catch (error) {
-            return next(new CustomError('Invalid Refresh Token',401))
-        }
-    }else{
-        try {
-            const decoded = jwt.verify(Token, process.env.JWT_KEY);
-            req.user = decoded;
-            next();
-    
-        } catch (error) {
-            return next(new CustomError('Invalid Token'))
+            return next(new CustomError('Invalid Refresh Token', 401))
         }
     }
+    
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_KEY);
+        req.user = decoded;
+        next();
+
+    } catch (error) {
+        return next(new CustomError('Invalid Token'))
+    }
+
 
 };
 
@@ -46,7 +52,7 @@ const adminAuthMiddleware = async (req, res, next) => {
         if (req.user && req.user.admin) {
             next()
         } else {
-            return next(new CustomError ('you are not authorised',403))
+            return next(new CustomError('you are not authorised', 403))
         }
     })
 }

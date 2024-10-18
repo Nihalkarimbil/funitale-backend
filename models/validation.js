@@ -11,7 +11,7 @@ const JoiUserSchema = joi.object({
 const JoiProductSchema = joi.object({
     name: joi.string().required(),
     category: joi.string().required(),
-    image: joi.string().required(),
+  
     new_price: joi.number().required(),
     old_price: joi.number(),
     description: joi.string().required(),

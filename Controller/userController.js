@@ -41,7 +41,7 @@ const userlogin = async (req, res, next) => {
     if (username === adminName && password === adminPass) {
         console.log('admin logged');
         const Token = jwt.sign(
-            { id: 'admin', admin: true }, process.env.JWT_KEY, { expiresIn: '15m' }
+            { id: 'admin', admin: true }, process.env.JWT_KEY, { expiresIn: '30m' }
         );
         const refreshToken = jwt.sign(
             { id: 'admin', admin: true }, process.env.JWT_KEY, { expiresIn: '7d' }
@@ -50,7 +50,7 @@ const userlogin = async (req, res, next) => {
             httpOnly: true,
             secure: true,
             sameSite: "none",
-            maxAge: 15 * 60 * 1000,//15 mnt
+            maxAge: 30 * 60 * 1000
         });
 
         res.cookie("refreshtoken", refreshToken, {
@@ -73,14 +73,14 @@ const userlogin = async (req, res, next) => {
         return next(new CustomError('invalid credentials', 404));
     }
 
-    const Token = jwt.sign({ id: user._id, username: user.username, email: user.email }, process.env.JWT_KEY, { expiresIn: '15m' });
+    const Token = jwt.sign({ id: user._id, username: user.username, email: user.email }, process.env.JWT_KEY, { expiresIn: '30m' });
     
     const refreshToken = jwt.sign({ id: user._id, username: user.username, email: user.email }, process.env.JWT_KEY, { expiresIn: '7d' });
 
     res.cookie('token', Token, {
         httpOnly: true,
         secure: true,
-        maxAge: 15 * 60 * 1000, //15 mnt
+        maxAge: 30 * 60 * 1000,
         sameSite: 'none'
     });
 

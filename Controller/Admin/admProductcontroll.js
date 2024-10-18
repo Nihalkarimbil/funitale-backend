@@ -26,16 +26,32 @@ const getproductbyID = async (req, res, next) => {
 
 //add Products
 const addProduct = async (req, res, next) => {
+    console.log(req.file)
+
 
     const { error, value } = JoiProductSchema.validate(req.body)
+
     if (error) {
         return next(new CustomError(error.message))
     }
-    const { name, category, image, new_price, description, detailOne } = value;
-    const newproduct = await new Product({ name, category, image, new_price, description, detailOne })
+    
+    const { name, category, new_price, description, detailOne } = value;
+
+    const image= req.file.path
+    console.log(value);
+    
+   
+    const newproduct = await new Product({ 
+        image, 
+        name, 
+        category, 
+        new_price, 
+        description, 
+        detailOne 
+    })
+
     newproduct.save()
     res.status(200).json(newproduct)
-
 
 }
 
@@ -47,7 +63,10 @@ const editProduct = async (req, res, next) => {
     if (error) {
         return next(new CustomError('Validation failed', 400))
     }
-
+    
+    if(req.file){
+        value.image=req.file.path
+    }
 
     const updatedProduct = await Product.findByIdAndUpdate(req.params.id, value, { new: true });
 
