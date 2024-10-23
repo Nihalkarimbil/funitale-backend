@@ -4,7 +4,7 @@ const userController=require ('../Controller/userController')
 const {userAuthMiddleware}=require('../middleware/Authentication')
 const userproduct =require('../Controller/User/userProductcontroll')
 const userCart=require('../Controller/User/userCartcontroller')
-const userwish =require('../Controller/User/userWishlistcontroller')
+const userwish =require ('../Controller/User/userWishlistcontroller')
 const userOrder=require('../Controller/User/userOrdercontroller')
 const tryCatch=require('../utils/trycatch')
 
@@ -20,6 +20,7 @@ routes
     //Product View
     .get('/user/products/:category',tryCatch(userproduct.productBycategory))
     .get('/user/productby/:id',tryCatch(userproduct.getproductbyID))
+    .get('/user/product', tryCatch(userproduct.allProduct))
 
     //CART Routes
     .post('/user/addtocart',userAuthMiddleware, tryCatch(userCart.addtocart))

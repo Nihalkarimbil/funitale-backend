@@ -2,9 +2,9 @@ const jwt = require('jsonwebtoken');
 const CustomError = require('../utils/customError')
 
 const userAuthMiddleware = async (req, res, next) => {
-    // const token = req.cookies?.token;  
+
     const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1];
+    const token = authHeader && authHeader.split(' ')[1] || req.cookies?.token;  
 
     if (!token) {
         const refreshToken = req.cookies?.refreshtoken;

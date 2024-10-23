@@ -18,7 +18,7 @@ Routes
     .get('/admin/products',adminAuthMiddleware, tryCatch(admnProduct.allProduct))
     .get('/admin/proctby/:id',adminAuthMiddleware, tryCatch(admnProduct.getproductbyID))
     .post('/admin/addproduct',adminAuthMiddleware,upload.single('image'), tryCatch(admnProduct.addProduct))
-    .put('/admin/editproduct/:id',adminAuthMiddleware, tryCatch(admnProduct.editProduct))
+    .put('/admin/editproduct/:id',adminAuthMiddleware,upload.single('image') ,tryCatch(admnProduct.editProduct))
     .delete('/admin/deleteproduct/:id',adminAuthMiddleware, tryCatch(admnProduct.deleteProduct))
     
     //ORDERS Routes

@@ -47,18 +47,18 @@ const userlogin = async (req, res, next) => {
             { id: 'admin', admin: true }, process.env.JWT_KEY, { expiresIn: '7d' }
         );
         res.cookie("token", Token, {
-            httpOnly: true,
-            secure: true,
-            sameSite: "none",
-            maxAge: 30 * 60 * 1000
+            httpOnly: true, 
+            secure: false, // Disable 'secure' for development (non-HTTPS)
+            sameSite: "none", // Use 'lax' for local development
+            maxAge: 30 * 60 * 1000 // 30 minutes
         });
-
+        
         res.cookie("refreshtoken", refreshToken, {
             httpOnly: true,
-            secure: true,
-            sameSite: "none",
-            maxAge: 7 * 24 * 60 * 60 * 1000,//7 days
-        });
+            secure: false, // Disable 'secure' for development
+            sameSite: "none", // 'lax' works fine on localhost
+            maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+        })
         return res.status(200).json({ token: Token, refreshToken, admin: true });
     }
 
@@ -77,19 +77,19 @@ const userlogin = async (req, res, next) => {
     
     const refreshToken = jwt.sign({ id: user._id, username: user.username, email: user.email }, process.env.JWT_KEY, { expiresIn: '7d' });
 
-    res.cookie('token', Token, {
-        httpOnly: true,
-        secure: true,
-        maxAge: 30 * 60 * 1000,
-        sameSite: 'none'
+    res.cookie("token", Token, {
+        httpOnly: true, 
+        secure: false, // Disable 'secure' for development (non-HTTPS)
+        sameSite: "none", // Use 'lax' for local development
+        maxAge: 30 * 60 * 1000 // 30 minutes
     });
-
-    res.cookie('refreshtoken', refreshToken, {
+    
+    res.cookie("refreshtoken", refreshToken, {
         httpOnly: true,
-        secure: true,
-        maxAge: 7 * 24 * 60 * 60 * 1000, //7days
-        sameSite: 'none'
-    });
+        secure: false, // Disable 'secure' for development
+        sameSite: "none", // 'lax' works fine on localhost
+        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+    })
 
     res.status(200).json({ status: 'success', message: "Logged in successfully", token: Token, refreshToken });
 };

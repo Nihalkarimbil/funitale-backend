@@ -1,6 +1,15 @@
 const products = require('../../models/product')
 const CustomError = require('../../utils/customError')
 
+const allProduct = async (req, res, next) => {
+
+    const product = await products.find()
+    if (!product) {
+        return next(new CustomError('product not found', 404))
+    }
+    res.status(200).json(product)
+
+}
 //get products by category
 const productBycategory = async (req, res) => {
     const product = await products.find({ category: req.params.category })
@@ -20,5 +29,6 @@ const getproductbyID = async (req, res, next) => {
 
 module.exports = {
     productBycategory,
-    getproductbyID
+    getproductbyID,
+    allProduct
 }

@@ -37,8 +37,8 @@ const addProduct = async (req, res, next) => {
     
     const { name, category, new_price, description, detailOne } = value;
 
-    const image= req.file.path
-    console.log(value);
+    const image= req.file?.path
+    console.log(value)
     
    
     const newproduct = await new Product({ 

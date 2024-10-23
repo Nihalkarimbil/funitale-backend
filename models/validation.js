@@ -5,7 +5,9 @@ const JoiUserSchema = joi.object({
     username: joi.string().required(), 
     password: joi.string().min(4).required(),
     confpassword: joi.string().min(4),
-    email: joi.string().email()
+    email: joi.string().email(),
+    admin:joi.boolean().optional(),
+    blocked:joi.boolean().optional()
 })
 
 const JoiProductSchema = joi.object({
