@@ -57,6 +57,7 @@ const getallcartItem = async (req, res, next) => {
 const updatecartitem = async (req, res, next) => {
 
     const { productId, action } = req.body;
+    console.log(productId)
 
     const cartData = await Cart.findOne({ user: req.user.id }).populate('products.productId');
     console.log("cartdata" + cartData);

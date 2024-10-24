@@ -24,7 +24,7 @@ routes
 
     //CART Routes
     .post('/user/addtocart',userAuthMiddleware, tryCatch(userCart.addtocart))
-    .get('/user/cart/',userAuthMiddleware, tryCatch(userCart.getallcartItem))
+    .get('/user/cart',userAuthMiddleware, tryCatch(userCart.getallcartItem))
     .put('/user/updatecart',userAuthMiddleware, tryCatch(userCart.updatecartitem))
     .delete('/user/deletecart',userAuthMiddleware, tryCatch(userCart.deleteCart))
     .delete('/user/clearcart',userAuthMiddleware, tryCatch(userCart.clearAllCart))

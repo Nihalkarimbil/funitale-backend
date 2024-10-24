@@ -40,13 +40,13 @@ const userlogin = async (req, res, next) => {
     const adminPass = process.env.ADMIN_PASSWORD;
     if (username === adminName && password === adminPass) {
         console.log('admin logged');
-        const Token = jwt.sign(
+        const token = jwt.sign(
             { id: 'admin', admin: true }, process.env.JWT_KEY, { expiresIn: '30m' }
         );
         const refreshToken = jwt.sign(
             { id: 'admin', admin: true }, process.env.JWT_KEY, { expiresIn: '7d' }
         );
-        res.cookie("token", Token, {
+        res.cookie("token", token, {
             httpOnly: true, 
             secure: false, // Disable 'secure' for development (non-HTTPS)
             sameSite: "none", // Use 'lax' for local development
@@ -59,7 +59,7 @@ const userlogin = async (req, res, next) => {
             sameSite: "none", // 'lax' works fine on localhost
             maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
         })
-        return res.status(200).json({ token: Token, refreshToken, admin: true });
+        return res.status(200).json({ token: token, refreshToken, admin: true });
     }
 
     // User login and JWT
@@ -73,11 +73,11 @@ const userlogin = async (req, res, next) => {
         return next(new CustomError('invalid credentials', 404));
     }
 
-    const Token = jwt.sign({ id: user._id, username: user.username, email: user.email }, process.env.JWT_KEY, { expiresIn: '30m' });
+    const token = jwt.sign({ id: user._id, username: user.username, email: user.email }, process.env.JWT_KEY, { expiresIn: '30m' });
     
     const refreshToken = jwt.sign({ id: user._id, username: user.username, email: user.email }, process.env.JWT_KEY, { expiresIn: '7d' });
 
-    res.cookie("token", Token, {
+    res.cookie("token", token, {
         httpOnly: true, 
         secure: false, // Disable 'secure' for development (non-HTTPS)
         sameSite: "none", // Use 'lax' for local development
@@ -91,7 +91,7 @@ const userlogin = async (req, res, next) => {
         maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
     })
 
-    res.status(200).json({ status: 'success', message: "Logged in successfully", token: Token, refreshToken });
+    res.status(200).json({ status: 'success', message: "Logged in successfully", token: token, refreshToken });
 };
 
 
