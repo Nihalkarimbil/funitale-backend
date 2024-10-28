@@ -22,7 +22,7 @@ const addtocart = async (req, res) => {
     console.log('Incoming productId:', productId);
 
     const existingProduct = cart.products.find(
-        (product) => product.productId._id.toString() === productId.toString()
+        (product) => product.productId?._id.toString() == productId
     );
 
     console.log('Existing Product:', existingProduct);
@@ -40,6 +40,7 @@ const addtocart = async (req, res) => {
 
 
 };
+
 
 //get all cartitem
 const getallcartItem = async (req, res, next) => {
@@ -79,9 +80,7 @@ const updatecartitem = async (req, res, next) => {
     } else if (action === 'decrement') {
         if (cartProduct.quantity > 1) {
             cartProduct.quantity -= 1;
-        } else {
-            cartData.products = cartData.products.filter(valu => valu.productId._id.toString() !== productId);
-        }
+        } 
     } else {
         return next(new CustomError('invalid action', 400))
     }

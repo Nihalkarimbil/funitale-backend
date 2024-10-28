@@ -14,8 +14,10 @@ app.use(CookieParser())
 
 app.use(cors({
     origin: "http://localhost:3000",
-    credentials:true
-}))
+    credentials: true,
+    allowedHeaders: ["Content-Type", "Authorization"],
+    methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+  }))
 
 app.use('/api',userRout)
 app.use('/api',adminRoute)

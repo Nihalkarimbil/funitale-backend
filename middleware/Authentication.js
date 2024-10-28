@@ -1,10 +1,10 @@
 const jwt = require('jsonwebtoken');
-const CustomError = require('../utils/customError');
+const CustomError = require ('../utils/customError');
 
 const userAuthMiddleware = async (req, res, next) => {
-    const authHeader = req.headers['authorization'];
+    const authHeader = req.headers ['authorization'];
     console.log(authHeader)
-    const token = authHeader && authHeader.split(' ')[1]||req.cookies.token // Bearer <token>
+    const token = authHeader && authHeader.split(' ')[1]||req.cookies.token 
     
     
     
@@ -35,13 +35,12 @@ const userAuthMiddleware = async (req, res, next) => {
 
             // Set the new access token as a cookie
             res.cookie('token', newAccessToken, {
-                httpOnly: true, // Secure and not accessible via JS
-                secure: process.env.NODE_ENV === 'production', // Only use secure flag in production (HTTPS)
-                sameSite: 'lax', // Adjust this for local development or production
-                maxAge: 30 * 60 * 1000 // 30 minutes
+                httpOnly: true, 
+                secure: false, // Disable 'secure' for development (non-HTTPS)
+                sameSite: "none", // Use 'lax' for local development
+                maxAge: 30 * 60 * 1000
             });
 
-            // Attach user info to the request for further processing
             req.user = decoded;
 
             return next();
@@ -53,8 +52,8 @@ const userAuthMiddleware = async (req, res, next) => {
     // If access token is present, verify it
     try {
         const decoded = jwt.verify(token, process.env.JWT_KEY);
-        req.user = decoded; // Attach user info to the request
-        next(); // Continue to the next middleware/route handler
+        req.user = decoded; 
+        next(); 
     } catch (error) {
         return next(new CustomError('Invalid Access Token', 401));
     }
@@ -63,9 +62,9 @@ const userAuthMiddleware = async (req, res, next) => {
 // Admin middleware extending userAuthMiddleware
 const adminAuthMiddleware = async (req, res, next) => {
     userAuthMiddleware(req, res, () => {
-        // Check if user has admin privileges
+  
         if (req.user && req.user.admin) {
-            next(); // Proceed if the user is an admin
+            next(); 
         } else {
             return next(new CustomError('You are not authorized', 403));
         }
