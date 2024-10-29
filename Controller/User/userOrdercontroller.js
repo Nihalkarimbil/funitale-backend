@@ -9,7 +9,7 @@ const CreateOrder = async (req, res, next) => {
 
     const userCart = await Cart.findOne({ user: req.user.id }).populate("products.productId");
     if (!userCart) {
-        return next(CustomError('User cart not found', 404))
+        return next(new CustomError('User cart not found', 404))
     }
 
     const totalPrice = Math.round(
@@ -18,7 +18,7 @@ const CreateOrder = async (req, res, next) => {
             const price = parseFloat(item.productId.new_price);
             const quantity = parseInt(item.quantity);
             if (isNaN(price) || isNaN(quantity)) {
-                return next(CustomError('Invalid product price or quantity'))
+                return next( new CustomError('Invalid product price or quantity'))
             }
 
             return total + price * quantity;
@@ -26,31 +26,31 @@ const CreateOrder = async (req, res, next) => {
     )
     console.log(totalPrice);
 
-    // const lineItems = userCart.products.map(item => ({
-    //     price_data: {
-    //         currency: 'INR',
-    //         product_data: {
-    //             name: item.productId.name,
-    //             images: [item.productId.image]
-    //         },
-    //         unit_amount: Math.round(item.productId.new_price * 100) 
-    //     },
-    //     quantity: item.quantity
-    // }));
+    const lineItems = userCart.products.map(item => ({
+        price_data: {
+            currency: 'INR',
+            product_data: {
+                name: item.productId.name,
+                images: [item.productId.image]
+            },
+            unit_amount: Math.round(item.productId.new_price * 100) 
+        },
+        quantity: item.quantity
+    }));
 
-    // const session = await stripe.checkout.sessions.create({
-    //     payment_method_types: ['card'],  
-    //     line_items: lineItems,           
-    //     mode: 'payment',
-    //     success_url: `${process.env.URL_FRONTEND}/success-order`,
-    //     cancel_url: `${process.env.URL_FRONTEND}/cancel-order`
-    // });
+    const session = await stripe.checkout.sessions.create({
+        payment_method_types: ['card'],  
+        line_items: lineItems,           
+        mode: 'payment',
+        success_url: `${process.env.URL_FRONTEND}/success-order`,
+        cancel_url: `${process.env.URL_FRONTEND}/cancel-order`
+    });
 
 
     const newOrder = new Order({
         userID: req.user.id,
         products: userCart.products,
-        sessionID: 23452343,
+        sessionID:session.id,
         amount: totalPrice,
         paymentStatus: 'pending'
     });
