@@ -1,7 +1,7 @@
 const Cart = require('../../models/Cart')
-const stripe = require('stripe')(process.env.STRIPE_KEY)
+const stripe = require('stripe')
 const Order = require('../../models/orders')
-const CustomError = require('../../utils/customError')
+const CustomError = require ('../../utils/customError')
 
 
 //order Creation
@@ -38,12 +38,14 @@ const CreateOrder = async (req, res, next) => {
         quantity: item.quantity
     }));
 
-    const session = await stripe.checkout.sessions.create({
+    const stripeclint=new stripe(process.env.STRIPE_KEY)
+    const session = await stripeclint.checkout.sessions.create({
         payment_method_types: ['card'],  
         line_items: lineItems,           
         mode: 'payment',
-        success_url: `${process.env.URL_FRONTEND}/success-order`,
-        cancel_url: `${process.env.URL_FRONTEND}/cancel-order`
+        ui_mode:'embedded',
+        return_url: `${process.env.URL_FRONTEND}/success/{CHECKOUT_SESSION_ID}`,
+       
     });
 
 
@@ -59,7 +61,14 @@ const CreateOrder = async (req, res, next) => {
     const savedOrder = await newOrder.save();
     await Cart.findOneAndUpdate({ user: req.user.id }, { $set: { products: [] } });
 
-    res.status(200).json({ savedOrder });
+    res.status(200).json({
+        message:'order created succesfully',
+        data:{session:session,
+            order:savedOrder,
+            clientsecret: session.client_secret,
+            linedata:lineItems
+        }
+    });
 
 
 };
