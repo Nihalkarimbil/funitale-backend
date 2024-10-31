@@ -54,7 +54,7 @@ const CreateOrder = async (req, res, next) => {
         products: userCart.products,
         sessionID:session.id,
         amount: totalPrice,
-        paymentStatus: 'pending'
+        paymentStatus:'pending'
     });
 
 
@@ -63,7 +63,8 @@ const CreateOrder = async (req, res, next) => {
 
     res.status(200).json({
         message:'order created succesfully',
-        data:{session:session,
+        data:{
+            session:session,
             order:savedOrder,
             clientsecret: session.client_secret,
             linedata:lineItems
@@ -73,12 +74,26 @@ const CreateOrder = async (req, res, next) => {
 
 };
 
+const getOrderById = async (req, res, next) => {
+    const { sessionID } = req.params;
+
+    try {
+        const order = await Order.findOne({ sessionID: sessionID });
+        if (!order) {
+            return next(new CustomError('Order not found', 404));
+        }
+        res.status(200).json({ message: 'Order successfully retrieved', order:{order} });
+    } catch (error) {
+        next(error);
+    }
+};
 
 //verify order
 const verifyOrder = async (req, res, next) => {
 
-    const { session_ID } = req.body;
-    const order = await Order.findOne({ sessionID: session_ID });
+    const { sessionID } = req.params;
+    console.log(sessionID)
+    const order = await Order.findOne({ sessionID:  sessionID });
 
     if (!order) {
         return next(CustomError('Order not found', 404))
@@ -119,10 +134,6 @@ const cancelOrder = async (req, res, next) => {
         return next(new CustomError('Order with this ID is not found', 404))
     }
 
-    if (orderById.paymentStatus === "completed") {
-        return res.status(400).json('Cannot cancel this order, already paid');
-    }
-
     orderById.paymentStatus = 'cancelled';
     orderById.shippingStatus = 'cancelled';
 
@@ -136,5 +147,6 @@ module.exports = {
     CreateOrder,
     verifyOrder,
     GetAllorders,
-    cancelOrder
+    cancelOrder,
+    getOrderById
 }

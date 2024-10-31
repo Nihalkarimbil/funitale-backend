@@ -36,8 +36,9 @@ routes
 
     //ORDER Routes
     .post('/user/addOrder',userAuthMiddleware, tryCatch(userOrder.CreateOrder))
-    .post('/user/verifyorder',userAuthMiddleware, tryCatch(userOrder.verifyOrder))
+    .post('/user/verifyorder/:sessionID',userAuthMiddleware, tryCatch(userOrder.verifyOrder))
     .get('/user/getAllorders',userAuthMiddleware, tryCatch(userOrder.GetAllorders))
+    .get('/user/getorderbyID/:sessionID',userAuthMiddleware, tryCatch(userOrder.getOrderById))
     .delete('/user/order/:id',userAuthMiddleware, tryCatch(userOrder.cancelOrder))
 
 module.exports=routes 

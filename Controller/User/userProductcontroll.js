@@ -1,5 +1,5 @@
 const products = require('../../models/product')
-const CustomError = require('../../utils/customError')
+const CustomError = require ('../../utils/customError')
 
 const allProduct = async (req, res, next) => {
 

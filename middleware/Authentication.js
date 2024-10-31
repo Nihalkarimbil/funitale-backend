@@ -36,8 +36,8 @@ const userAuthMiddleware = async (req, res, next) => {
             // Set the new access token as a cookie
             res.cookie('token', newAccessToken, {
                 httpOnly: true, 
-                secure: false, // Disable 'secure' for development (non-HTTPS)
-                sameSite: "none", // Use 'lax' for local development
+                secure: false, 
+                sameSite: "none",
                 maxAge: 30 * 60 * 1000
             });
 
@@ -59,7 +59,6 @@ const userAuthMiddleware = async (req, res, next) => {
     }
 };
 
-// Admin middleware extending userAuthMiddleware
 const adminAuthMiddleware = async (req, res, next) => {
     userAuthMiddleware(req, res, () => {
   

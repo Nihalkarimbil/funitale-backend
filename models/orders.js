@@ -12,7 +12,7 @@ const orderSchema=new mongoose.Schema({
     purchaseDate:{type:Date,default:Date.now},
     amount:{type:Number,required:true},
     paymentStatus:{type:String,enum:["pending",'completed',"cancelled"],default:'pending'},
-    shippingStatus: { type: String,enum:["pending",'completed',"cancelled"] ,default: "pending" }
+    shippingStatus: { type: String,enum:['pending',"Processing",'completed',"cancelled"] ,default: "pending" }
 
 })
 
