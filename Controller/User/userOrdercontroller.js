@@ -133,6 +133,7 @@ const cancelOrder = async (req, res, next) => {
     if (!orderById) {
         return next(new CustomError('Order with this ID is not found', 404))
     }
+    
 
     orderById.paymentStatus = 'cancelled';
     orderById.shippingStatus = 'cancelled';

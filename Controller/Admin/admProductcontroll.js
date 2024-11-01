@@ -27,8 +27,6 @@ const getproductbyID = async (req, res, next) => {
 //add Products
 const addProduct = async (req, res, next) => {
     console.log(req.file)
-
-
     const { error, value } = JoiProductSchema.validate(req.body)
 
     if (error) {
@@ -58,30 +56,36 @@ const addProduct = async (req, res, next) => {
 
 //editing of the product
 const editProduct = async (req, res, next) => {
-
-    const { error, value } = JoiProductSchema.validate(req.body);
+    const { _id,__v,image, ...productData } = req.body;
+    const { error, value } = JoiProductSchema.validate(productData);
     if (error) {
-        return next(new CustomError('Validation failed', 400))
-    }
-    
-    if(req.file){
-        value.image=req.file.path
+        console.error("Validation Error:", error.details);
+        return next(new CustomError('Validation failed', 400));
     }
 
-    const updatedProduct = await Product.findByIdAndUpdate(req.params.id, value, { new: true });
-
-    if (!updatedProduct) {
-        return next(new CustomError('Product not found with this ID', 404))
+    if (req?.file) {
+        value.image = req.file.path; 
     }
 
-    res.status(200).json(updatedProduct);
+    try {
+        const updatedProduct = await Product.findByIdAndUpdate(req.params.id, value, { new: true });
+        
+        if (!updatedProduct) {
+            return next(new CustomError('Product not found with this ID', 404));
+        }
 
+        res.status(200).json(updatedProduct);
+    } catch (err) {
+        console.error("Error updating product:", err);
+        next(new CustomError('Failed to update product', 500));
+    }
 };
 
 //delete product
 const deleteProduct = async (req, res, next) => {
 
     const deleteProduct = await Product.findByIdAndDelete(req.params.id)
+    console.log(deleteProduct)
     if (!deleteProduct) {
         return next(new CustomError('Product with this ID is not found', 404))
     }

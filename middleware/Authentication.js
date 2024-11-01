@@ -1,21 +1,17 @@
 const jwt = require('jsonwebtoken');
-const CustomError = require ('../utils/customError');
+const CustomError = require('../utils/customError');
 
 const userAuthMiddleware = async (req, res, next) => {
-    const authHeader = req.headers ['authorization'];
-    console.log(authHeader)
-    const token = authHeader && authHeader.split(' ')[1]||req.cookies.token 
-    
-    
-    
-    console.log("DSAFSG",req.cookies);
-    
-    // console.log("SDFG",token);
-    
+    const authHeader = req.headers['authorization'];
+    const token = authHeader?.split(' ')[1] || req.cookies?.token; // Fixed: simplified optional chaining
+
+    console.log("Authorization Header:", authHeader);
+    console.log("Cookies:", req.cookies);
+
     // If no access token, check for the refresh token
     if (!token) {
-        const refreshToken = req.Cookies?.refreshtoken; // Read refresh token from cookies
-        console.log(refreshToken);
+        const refreshToken = req.cookies?.refreshtoken; // Fixed: corrected req.Cookies to req.cookies
+        console.log("Refresh Token:", refreshToken);
 
         // If refresh token is missing, reject the request
         if (!refreshToken) {
@@ -35,10 +31,10 @@ const userAuthMiddleware = async (req, res, next) => {
 
             // Set the new access token as a cookie
             res.cookie('token', newAccessToken, {
-                httpOnly: true, 
-                secure: false, 
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production', // Fixed: secure to true in production
                 sameSite: "none",
-                maxAge: 30 * 60 * 1000
+                maxAge: 30 * 60 * 1000,
             });
 
             req.user = decoded;
@@ -52,8 +48,8 @@ const userAuthMiddleware = async (req, res, next) => {
     // If access token is present, verify it
     try {
         const decoded = jwt.verify(token, process.env.JWT_KEY);
-        req.user = decoded; 
-        next(); 
+        req.user = decoded;
+        next();
     } catch (error) {
         return next(new CustomError('Invalid Access Token', 401));
     }
@@ -61,9 +57,8 @@ const userAuthMiddleware = async (req, res, next) => {
 
 const adminAuthMiddleware = async (req, res, next) => {
     userAuthMiddleware(req, res, () => {
-  
         if (req.user && req.user.admin) {
-            next(); 
+            next();
         } else {
             return next(new CustomError('You are not authorized', 403));
         }

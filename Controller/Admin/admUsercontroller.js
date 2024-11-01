@@ -4,7 +4,7 @@ const CustomError = require('../../utils/customError')
 
 //get all users
 const allUsers = async (req, res) => {
-    const users = await User.find({ blocked: false })
+    const users = await User.find({ admin:false })
     res.status(200).json(users)
 
 }

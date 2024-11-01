@@ -40,11 +40,13 @@ const userlogin = async (req, res, next) => {
     const adminPass = process.env.ADMIN_PASSWORD;
     if (username === adminName && password === adminPass) {
         console.log('admin logged');
+        
+    
         const token = jwt.sign(
             { id: 'admin', admin: true }, process.env.JWT_KEY, { expiresIn: '30m' }
         );
         const refreshToken = jwt.sign(
-            { id: 'admin', admin: true }, process.env.JWT_KEY, { expiresIn: '7d' }
+            { id:'admin', admin: true }, process.env.JWT_KEY, { expiresIn: '7d' }
         );
         res.cookie("token", token, {
             httpOnly: true, 
