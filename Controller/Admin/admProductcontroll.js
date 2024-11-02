@@ -100,10 +100,21 @@ const deleteProduct = async (req, res, next) => {
 
 }
 
+const totalproductsum =async(req,res,next)=>{
+
+    const productsum=await Product.find()
+    if (!productsum) {
+        return next(new CustomError('product not found', 404))
+    }
+
+    res.status(200).json(productsum.length)
+}
+
 module.exports = {
     allProduct,
     getproductbyID,
     addProduct,
     editProduct,
-    deleteProduct
+    deleteProduct,
+    totalproductsum
 }

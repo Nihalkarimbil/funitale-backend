@@ -55,9 +55,16 @@ const Updateuser = async (req, res, next) => {
 
 };
 
+const allUserssum = async (req, res) => {
+    const users = await User.find({ admin:false })
+    res.status(200).json(users.length)
+
+}
+
 module.exports = {
     allUsers,
     deleteUser,
     viewUserbyId,
-    Updateuser
+    Updateuser,
+    allUserssum
 }

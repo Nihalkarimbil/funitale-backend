@@ -3,7 +3,7 @@ const CustomError = require('../../utils/customError')
 
 const allOrders = async (req, res, next) => {
 
-    const orders = await Order.find()
+    const orders = await Order.find().populate('products.productId')
     if (!orders) {
         return next(new CustomError('orders Not found', 404))
     }
@@ -73,11 +73,48 @@ const TotalRevenew = async (req, res) => {
 
 }
 
+const allOrderssum = async (req, res, next) => {
+
+    const orders = await Order.find()
+    if (!orders) {
+        return next(new CustomError('orders Not found', 404))
+    }
+    res.status(200).json(orders.length)
+
+}
+
+
+// Update shipping status endpoint
+const shippingupdate = async (req, res) => {
+    const { newStatus } = req.body;
+   
+    console.log('hhhh',newStatus)
+
+
+ 
+
+
+    // Find and update the order's shipping status
+    const updatedOrder = await Order.findByIdAndUpdate(
+        req.params.id,
+        { shippingStatus: newStatus },
+        { new: true } // Return the updated document
+    );
+
+    if (!updatedOrder) {
+        return res.status(404).json({ error: 'Order not found' });
+    }
+
+    res.status(200).json({ message: 'Shipping status updated successfully', order: updatedOrder });
+
+};
 
 
 module.exports = {
     allOrders,
     cancelOrder,
     getOrderofuserbyID,
-    TotalRevenew
+    TotalRevenew,
+    allOrderssum,
+    shippingupdate
 }

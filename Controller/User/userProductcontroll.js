@@ -27,6 +27,7 @@ const getproductbyID = async (req, res, next) => {
 
 }
 
+
 module.exports = {
     productBycategory,
     getproductbyID,
