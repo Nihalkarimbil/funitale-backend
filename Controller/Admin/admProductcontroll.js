@@ -58,6 +58,7 @@ const addProduct = async (req, res, next) => {
 const editProduct = async (req, res, next) => {
     const { _id,__v,image, ...productData } = req.body;
     const { error, value } = JoiProductSchema.validate(productData);
+    
     if (error) {
         console.error("Validation Error:", error.details);
         return next(new CustomError('Validation failed', 400));
@@ -110,11 +111,17 @@ const totalproductsum =async(req,res,next)=>{
     res.status(200).json(productsum.length)
 }
 
+const productBycategory = async (req, res) => {
+    const product = await Product.find({ category: req.params.category })
+    res.json(product)
+}
+
 module.exports = {
     allProduct,
     getproductbyID,
     addProduct,
     editProduct,
     deleteProduct,
-    totalproductsum
+    totalproductsum,
+    productBycategory
 }

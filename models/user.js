@@ -6,7 +6,8 @@ const userschema = new mongoose.Schema({
     password: { type: String, required: true },  
     confpassword: { type: String, required: true },  
     admin: { type: Boolean, default: false },  
-    blocked: { type: Boolean, default: false },  
+    blocked: { type: Boolean, default: false },
+    refreshToken: {type: String }
    
 });
 

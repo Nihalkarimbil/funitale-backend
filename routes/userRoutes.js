@@ -16,6 +16,7 @@ routes
     .post('/user/signup',tryCatch(userController.userReg))
     .post('/user/login',tryCatch(userController.userlogin))
     .post('/user/logout',tryCatch(userController.userLogout))
+    .post('/refresh-token',tryCatch(userController.refresh))
 
     //Product View
     .get('/user/products/:category',tryCatch(userproduct.productBycategory))

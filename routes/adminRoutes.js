@@ -22,6 +22,7 @@ Routes
     .put('/admin/editproduct/:id',adminAuthMiddleware,upload.single('image') ,tryCatch(admnProduct.editProduct))
     .delete('/admin/deleteproduct/:id',adminAuthMiddleware, tryCatch(admnProduct.deleteProduct))
     .get('/admin/productsSum',adminAuthMiddleware, tryCatch(admnProduct.totalproductsum))
+    .get('/admin/productss/:category',adminAuthMiddleware,tryCatch(admnProduct.productBycategory))
     
     //ORDERS Routes
     .get('/admin/orders',adminAuthMiddleware, tryCatch(admnOrder.allOrders))

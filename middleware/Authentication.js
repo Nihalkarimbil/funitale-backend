@@ -1,65 +1,39 @@
 const jwt = require('jsonwebtoken');
 const CustomError = require('../utils/customError');
 
-const userAuthMiddleware = async (req, res, next) => {
+const userAuthMiddleware = (req, res, next) => {
+    console.log("Request Headers:", req.headers);
+
     const authHeader = req.headers['authorization'];
-    const token = authHeader?.split(' ')[1] || req.cookies?.token; // Fixed: simplified optional chaining
+    const token = authHeader ? authHeader.split(' ')[1] : req.cookies?.token;
 
     console.log("Authorization Header:", authHeader);
     console.log("Cookies:", req.cookies);
 
-    // If no access token, check for the refresh token
+    // Check if the access token exists
     if (!token) {
-        const refreshToken = req.cookies?.refreshtoken; // Fixed: corrected req.Cookies to req.cookies
-        console.log("Refresh Token:", refreshToken);
-
-        // If refresh token is missing, reject the request
-        if (!refreshToken) {
-            return next(new CustomError('No token or refresh token', 403));
-        }
-
-        // Try to verify and refresh the token
-        try {
-            const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_KEY);
-
-            // Generate a new access token
-            const newAccessToken = jwt.sign(
-                { id: decoded.id, username: decoded.username, email: decoded.email },
-                process.env.JWT_KEY,
-                { expiresIn: '30m' } // Access token valid for 30 minutes
-            );
-
-            // Set the new access token as a cookie
-            res.cookie('token', newAccessToken, {
-                httpOnly: true,
-                secure: process.env.NODE_ENV === 'production', // Fixed: secure to true in production
-                sameSite: "none",
-                maxAge: 30 * 60 * 1000,
-            });
-
-            req.user = decoded;
-
-            return next();
-        } catch (error) {
-            return next(new CustomError('Invalid Refresh Token', 401));
-        }
+        return next(new CustomError('No access token provided', 401));
     }
 
-    // If access token is present, verify it
+    // Verify the access token
     try {
         const decoded = jwt.verify(token, process.env.JWT_KEY);
+        console.log("Decoded Token:", decoded);  // Log decoded token
         req.user = decoded;
         next();
     } catch (error) {
-        return next(new CustomError('Invalid Access Token', 401));
+        console.error("Token Verification Error:", error);
+        return next(new CustomError('Invalid or expired access token', 401));
     }
 };
 
-const adminAuthMiddleware = async (req, res, next) => {
+// Admin middleware (checks if user is admin)
+const adminAuthMiddleware = (req, res, next) => {
     userAuthMiddleware(req, res, () => {
         if (req.user && req.user.admin) {
-            next();
+            return next();
         } else {
+            console.log("User is not an admin:", req.user);
             return next(new CustomError('You are not authorized', 403));
         }
     });
