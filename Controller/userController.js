@@ -140,13 +140,15 @@ const userLogout = async (req, res, next) => {
 };
 
 const refresh =async (req, res) => {
-    const { refreshToken } = req.cookies;
-    if (!refreshToken) return res.status(401).json({ message: "Refresh token required" });
+    const { refreshtoken } = req.body;
+    console.log('aaaaa',refreshtoken);
+    
+    if (!refreshtoken) return res.status(401).json({ message: "Refresh token required" });
 
-    const user = await User.findOne({ refreshToken });
+    const user = await User.findOne({ refreshtoken });
     if (!user) return res.status(403).json({ message: "Refresh token invalid" });
 
-    jwt.verify(refreshToken, process.env.JWT_KEY, (err, decoded) => {
+    jwt.verify(refreshtoken, process.env.JWT_KEY, (err, decoded) => {
         if (err) return res.status(403).json({ message: "Token verification failed" });
 
         const newAccessToken = jwt.sign(
@@ -154,6 +156,8 @@ const refresh =async (req, res) => {
             process.env.JWT_KEY,
             { expiresIn: '30m' }
         );
+        
+        localStorage.setItem('token', newAccessToken)
 
         res.cookie("token", newAccessToken, {
             httpOnly: true,
