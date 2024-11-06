@@ -10,15 +10,14 @@ const userAuthMiddleware = (req, res, next) => {
     console.log("Authorization Header:", authHeader);
     console.log("Cookies:", req.cookies);
 
-    // Check if the access token exists
+   
     if (!token) {
         return next(new CustomError('No access token provided', 401));
     }
 
-    // Verify the access token
     try {
         const decoded = jwt.verify(token, process.env.JWT_KEY);
-        console.log("Decoded Token:", decoded);  // Log decoded token
+        console.log("Decoded Token:", decoded); 
         req.user = decoded;
         next();
     } catch (error) {
@@ -27,7 +26,6 @@ const userAuthMiddleware = (req, res, next) => {
     }
 };
 
-// Admin middleware (checks if user is admin)
 const adminAuthMiddleware = (req, res, next) => {
     userAuthMiddleware(req, res, () => {
         if (req.user && req.user.admin) {

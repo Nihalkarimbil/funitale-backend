@@ -9,7 +9,6 @@ const userOrder=require('../Controller/User/userOrdercontroller')
 const tryCatch=require('../utils/trycatch')
 
 
-
 routes
 
     //user LOGIN/REGISTER/LOGOUT
