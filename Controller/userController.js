@@ -132,11 +132,7 @@ const userLogout = async (req, res, next) => {
             secure: true,
             sameSite: 'none',
         });
-
-        localStorage.removeItem('activeuserdata');
-        localStorage.removeItem('token');
-        localStorage.removeItem('refreshToken');
-        localStorage.removeItem('adminData');
+        
         res.status(200).json({ status: 'success', message: 'Logout successful' });
 
     } catch (error) {
