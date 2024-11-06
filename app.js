@@ -14,7 +14,7 @@ app.use(CookieParser())
 
 
 app.use(cors({
-    origin: "https://furniture-ecommerce-app-three.vercel.app/",
+    origin: "https://furnitales.vercel.app/",
     credentials: true,
 }))
 
