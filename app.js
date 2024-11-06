@@ -14,8 +14,10 @@ app.use(CookieParser())
 
 
 app.use(cors({
-    origin: "https://furnitales.vercel.app/",
+    origin: "https://furnitales.vercel.app",
     credentials: true,
+    allowedHeaders: ["Content-Type", "Authorization"],
+    methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
 }))
 
 app.use('/api', userRout)
