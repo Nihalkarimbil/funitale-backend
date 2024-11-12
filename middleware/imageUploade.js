@@ -18,6 +18,6 @@ const storage =new CloudinaryStorage({
 })
 
 const upload=multer({storage:storage})
-console.log(upload.single('image'));
+
 
 module.exports=upload
