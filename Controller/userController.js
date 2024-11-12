@@ -15,7 +15,6 @@ const userReg = async (req, res, next) => {
     }
 
     if (password !== confpassword) {
-        // return res.status(400).json({ error: 'Passwords do not match' });
         return next(new CustomError('Passwords do not match', 400))
     }
 
@@ -39,7 +38,6 @@ const userlogin = async (req, res, next) => {
     const adminPass = process.env.ADMIN_PASSWORD;
     if (username === adminName && password === adminPass) {
         const user = await User.findOne({ username });
-        console.log('admin logged');
         
         const token = jwt.sign(
             { id: 'admin', admin: true }, process.env.JWT_KEY, { expiresIn: '30m' }
@@ -142,7 +140,6 @@ const userLogout = async (req, res, next) => {
 
 const refresh =async (req, res) => {
     const { refreshtoken } = req.body;
-    console.log('aaaaa',refreshtoken);
     
     if (!refreshtoken) return res.status(401).json({ message: "Refresh token required" });
 
