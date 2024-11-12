@@ -24,7 +24,7 @@ const CreateOrder = async (req, res, next) => {
             return total + price * quantity;
         }, 0)
     )
-    console.log(totalPrice);
+   
 
     const lineItems = userCart.products.map(item => ({
         price_data: {
@@ -92,7 +92,6 @@ const getOrderById = async (req, res, next) => {
 const verifyOrder = async (req, res, next) => {
 
     const { sessionID } = req.params;
-    console.log(sessionID)
     const order = await Order.findOne({ sessionID:  sessionID });
 
     if (!order) {
@@ -134,11 +133,8 @@ const cancelOrder = async (req, res, next) => {
         return next(new CustomError('Order with this ID is not found', 404))
     }
     
-
     orderById.paymentStatus = 'cancelled';
     orderById.shippingStatus = 'cancelled';
-
-
     await orderById.save();
 
     res.status(200).json('Order successfully cancelled');
