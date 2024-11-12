@@ -26,7 +26,7 @@ const getproductbyID = async (req, res, next) => {
 
 //add Products
 const addProduct = async (req, res, next) => {
-    console.log(req.file)
+
     const { error, value } = JoiProductSchema.validate(req.body)
 
     if (error) {
@@ -36,7 +36,6 @@ const addProduct = async (req, res, next) => {
     const { name, category, new_price, description, detailOne } = value;
 
     const image= req.file?.path
-    console.log(value)
     
    
     const newproduct = await new Product({ 
@@ -86,7 +85,7 @@ const editProduct = async (req, res, next) => {
 const deleteProduct = async (req, res, next) => {
 
     const deleteProduct = await Product.findByIdAndDelete(req.params.id)
-    console.log(deleteProduct)
+    
     if (!deleteProduct) {
         return next(new CustomError('Product with this ID is not found', 404))
     }
