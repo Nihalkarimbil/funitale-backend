@@ -62,9 +62,6 @@ const TotalRevenew = async (req, res) => {
             }
         }
     ])
-    console.log(calculate)
-
-    // Return 0 if no data is found
     if (calculate.length === 0) {
         return res.status(200).json({ revenew: 0 });
     }
@@ -87,18 +84,12 @@ const allOrderssum = async (req, res, next) => {
 // Update shipping status endpoint
 const shippingupdate = async (req, res) => {
     const { newStatus } = req.body;
-   
-    console.log('hhhh',newStatus)
-
-
- 
-
 
     // Find and update the order's shipping status
     const updatedOrder = await Order.findByIdAndUpdate(
         req.params.id,
         { shippingStatus: newStatus },
-        { new: true } // Return the updated document
+        { new: true }
     );
 
     if (!updatedOrder) {
