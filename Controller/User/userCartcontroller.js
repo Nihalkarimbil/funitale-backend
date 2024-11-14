@@ -23,7 +23,7 @@ const addtocart = async (req, res) => {
         (product) => product.productId?._id.toString() == productId
     );
 
-    console.log('Existing Product:', existingProduct);
+   
 
     if (existingProduct) {
         existingProduct.quantity += quantity;
@@ -56,7 +56,7 @@ const getallcartItem = async (req, res, next) => {
 const updatecartitem = async (req, res, next) => {
 
     const { productId, action } = req.body;
-    console.log(productId)
+   
 
     const cartData = await Cart.findOne({ user: req.user.id }).populate('products.productId');
 
