@@ -95,7 +95,7 @@ const deleteProduct = async (req, res, next) => {
         { $pull: { products: { productId: req.params.id } } }
     )
 
-    res.status(200).json("Product deleted successfully and removed from all carts and wishlists");
+    res.status(200).json("Product deleted successfully and removed from all carts ");
 
 
 }
