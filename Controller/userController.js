@@ -15,7 +15,6 @@ const userReg = async (req, res, next) => {
     }
 
     if (password !== confpassword) {
-        // return res.status(400).json({ error: 'Passwords do not match' });
         return next(new CustomError('Passwords do not match', 400))
     }
 
@@ -48,7 +47,6 @@ const userlogin = async (req, res, next) => {
             { id: 'admin', admin: true }, process.env.JWT_KEY, { expiresIn: '7d' }
         );
 
-        // Send tokens in cookies
         res.cookie("token", token, {
             httpOnly: true, 
             secure: false,
@@ -81,7 +79,6 @@ const userlogin = async (req, res, next) => {
         return next(new CustomError('Invalid credentials', 404));
     }
 
-    // Generate tokens
     const token = jwt.sign(
         { id: user._id, username: user.username, email: user.email },
         process.env.JWT_KEY,
@@ -94,11 +91,10 @@ const userlogin = async (req, res, next) => {
         { expiresIn: '7d' }
     );
 
-    // Save refresh token in the database
     user.refreshToken = refreshToken;
     await user.save();
 
-    // Send tokens in cookies
+  
     res.cookie("token", token, {
         httpOnly: true, 
         secure: false,

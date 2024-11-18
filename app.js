@@ -3,7 +3,6 @@ const express = require('express')
 const mongoose = require('mongoose')
 const userRout = require('./routes/userRoutes')
 const adminRoute = require('./routes/adminRoutes')
-// const stripeRoute=require('./routes/stripeRoute')
 const errorhandler = require('./middleware/erorhandler')
 const CookieParser = require('cookie-parser')
 const cors = require('cors')
@@ -22,7 +21,6 @@ app.use(cors({
 
 app.use('/api', userRout)
 app.use('/api', adminRoute)
-// app.use('/api', stripeRoute);
 
 app.use(errorhandler)
 

@@ -1,4 +1,3 @@
-const { custom } = require('joi');
 const Cart = require('../../models/Cart')
 const CustomError = require('../../utils/customError')
 

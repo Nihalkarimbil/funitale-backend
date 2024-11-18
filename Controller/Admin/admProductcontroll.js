@@ -111,6 +111,7 @@ const totalproductsum =async(req,res,next)=>{
     res.status(200).json(productsum.length)
 }
 
+
 const productBycategory = async (req, res) => {
     const product = await Product.find({ category: req.params.category })
     res.json(product)

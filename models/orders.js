@@ -1,7 +1,5 @@
 const  mongoose  = require('mongoose')
 
-
-
 const orderSchema=new mongoose.Schema({
     userID:{type:mongoose.Schema.ObjectId,ref:'User'},
     products:[{
