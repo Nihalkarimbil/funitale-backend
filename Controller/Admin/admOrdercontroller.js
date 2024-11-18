@@ -62,9 +62,12 @@ const TotalRevenew = async (req, res) => {
             }
         }
     ])
+<<<<<<< HEAD
     console.log(calculate)
 
     
+=======
+>>>>>>> aa6b12be9643e917e95fc464cfaf939544d49d55
     if (calculate.length === 0) {
         return res.status(200).json({ revenew: 0 });
     }
@@ -88,6 +91,10 @@ const allOrderssum = async (req, res, next) => {
 const shippingupdate = async (req, res) => {
     const { newStatus } = req.body;
 
+<<<<<<< HEAD
+=======
+    // Find and update the order's shipping status
+>>>>>>> aa6b12be9643e917e95fc464cfaf939544d49d55
     const updatedOrder = await Order.findByIdAndUpdate(
         req.params.id,
         { shippingStatus: newStatus },

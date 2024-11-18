@@ -18,17 +18,15 @@ const addtocart = async (req, res) => {
         return res.status(201).json(cartsend);
     }
 
-    console.log('Incoming productId:', productId);
-
     const existingProduct = cart.products.find(
         (product) => product.productId?._id.toString() == productId
     );
 
-    console.log('Existing Product:', existingProduct);
+   
 
     if (existingProduct) {
         existingProduct.quantity += quantity;
-        console.log('Updated Quantity:', existingProduct.quantity);
+        
     } else {
         cart.products.push({ productId, quantity });
     }
@@ -57,17 +55,15 @@ const getallcartItem = async (req, res, next) => {
 const updatecartitem = async (req, res, next) => {
 
     const { productId, action } = req.body;
-    console.log(productId)
+   
 
     const cartData = await Cart.findOne({ user: req.user.id }).populate('products.productId');
-    console.log("cartdata" + cartData);
 
     if (!cartData) {
         return next(new CustomError("cart not found", 404))
     }
 
     const cartProduct = cartData.products.find(pro => pro.productId._id.toString() == productId);
-    console.log("product" + cartProduct)
 
 
     if (!cartProduct) {
